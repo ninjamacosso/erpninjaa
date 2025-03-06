@@ -1,0 +1,192 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Benefício - {{ form.instance.nome }}
+{% else %}
+Novo Benefício
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Benefício - {{ form.instance.nome }}
+        {% else %}
+        Novo Benefício
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:beneficios_list' %}">Benefícios</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar Benefício
+            {% else %}
+            Novo Benefício
+            {% endif %}
+        </li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-gift me-1"></i>
+            Dados do Benefício
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.nome|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.tipo|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.fornecedor|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.valor|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-12">
+                        {{ form.descricao|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.regras|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.observacoes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.data_inicio|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.data_fim|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'rh:beneficios_list' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatação do campo de valor
+        const valorInput = document.getElementById('id_valor');
+        if (valorInput) {
+            valorInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = (parseInt(value) / 100).toFixed(2);
+                e.target.value = value;
+            });
+        }
+
+        // Validação do formulário
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Atualização dinâmica dos campos baseado no tipo
+        const tipoSelect = document.getElementById('id_tipo');
+        if (tipoSelect) {
+            tipoSelect.addEventListener('change', function() {
+                const tipo = this.value;
+                const descricaoInput = document.getElementById('id_descricao');
+                const regrasInput = document.getElementById('id_regras');
+                
+                // Sugestões de descrição e regras por tipo
+                switch(tipo) {
+                    case 'plano_saude':
+                        if (descricaoInput && !descricaoInput.value) {
+                            descricaoInput.value = 'Plano de saúde empresarial com cobertura nacional.';
+                        }
+                        if (regrasInput && !regrasInput.value) {
+                            regrasInput.value = '- Carência de 30 dias após admissão\n- Coparticipação de 20% em consultas\n- Extensivo a dependentes diretos';
+                        }
+                        break;
+                    case 'vale_refeicao':
+                        if (descricaoInput && !descricaoInput.value) {
+                            descricaoInput.value = 'Vale refeição para dias úteis trabalhados.';
+                        }
+                        if (regrasInput && !regrasInput.value) {
+                            regrasInput.value = '- Creditado mensalmente\n- Valor por dia útil\n- Não cumulativo';
+                        }
+                        break;
+                    case 'vale_transporte':
+                        if (descricaoInput && !descricaoInput.value) {
+                            descricaoInput.value = 'Vale transporte para deslocamento residência-trabalho.';
+                        }
+                        if (regrasInput && !regrasInput.value) {
+                            regrasInput.value = '- Desconto de 6% do salário base\n- Necessário comprovante de residência\n- Recarga mensal';
+                        }
+                        break;
+                }
+            });
+        }
+
+        // Validação das datas
+        const dataInicioInput = document.getElementById('id_data_inicio');
+        const dataFimInput = document.getElementById('id_data_fim');
+        
+        if (dataInicioInput && dataFimInput) {
+            dataFimInput.addEventListener('change', function() {
+                if (dataInicioInput.value && this.value) {
+                    const inicio = new Date(dataInicioInput.value);
+                    const fim = new Date(this.value);
+                    
+                    if (fim < inicio) {
+                        this.setCustomValidity('A data de fim deve ser posterior à data de início');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+            
+            dataInicioInput.addEventListener('change', function() {
+                if (dataFimInput.value && this.value) {
+                    const inicio = new Date(this.value);
+                    const fim = new Date(dataFimInput.value);
+                    
+                    if (fim < inicio) {
+                        dataFimInput.setCustomValidity('A data de fim deve ser posterior à data de início');
+                    } else {
+                        dataFimInput.setCustomValidity('');
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

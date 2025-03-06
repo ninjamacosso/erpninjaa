@@ -1,0 +1,341 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}{{ falta_licenca.get_tipo_display }} - {{ falta_licenca.funcionario.nome }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{{ falta_licenca.get_tipo_display }} - {{ falta_licenca.funcionario.nome }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:faltas_licencas_list' %}">Faltas e Licenças</a></li>
+        <li class="breadcrumb-item active">Detalhes</li>
+    </ol>
+
+    <!-- Ações -->
+    <div class="mb-4">
+        {% if falta_licenca.status == 'pendente' %}
+        <a href="{% url 'rh:falta_licenca_update' falta_licenca.id %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#aprovarModal">
+            <i class="fas fa-check me-1"></i>Aprovar
+        </button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#reprovarModal">
+            <i class="fas fa-times me-1"></i>Reprovar
+        </button>
+        {% endif %}
+        <button type="button" class="btn btn-primary" onclick="window.print();">
+            <i class="fas fa-print me-1"></i>Imprimir
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Informações do Funcionário -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user me-1"></i>
+                    Informações do Funcionário
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if falta_licenca.funcionario.foto %}
+                        <img src="{{ falta_licenca.funcionario.foto.url }}" alt="Foto do funcionário" class="rounded-circle img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                        <img src="{% static 'img/default-avatar.png' %}" alt="Foto padrão" class="rounded-circle img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <p><strong>Nome:</strong> {{ falta_licenca.funcionario.nome }}</p>
+                    <p><strong>Cargo:</strong> {{ falta_licenca.funcionario.cargo }}</p>
+                    <p><strong>Departamento:</strong> {{ falta_licenca.funcionario.departamento }}</p>
+                    <p><strong>Data de Admissão:</strong> {{ falta_licenca.funcionario.data_admissao|date:"d/m/Y" }}</p>
+                    <p><strong>Matrícula:</strong> {{ falta_licenca.funcionario.matricula }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Informações da Falta/Licença -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Informações da {{ falta_licenca.get_tipo_display }}
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Tipo:</strong> {{ falta_licenca.get_tipo_display }}</p>
+                            <p><strong>Data Início:</strong> {{ falta_licenca.data_inicio|date:"d/m/Y" }}</p>
+                            <p><strong>Data Fim:</strong> {{ falta_licenca.data_fim|date:"d/m/Y" }}</p>
+                            <p><strong>Dias:</strong> {{ falta_licenca.dias }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong>
+                                {% if falta_licenca.status == 'pendente' %}
+                                <span class="badge bg-warning">Pendente</span>
+                                {% elif falta_licenca.status == 'aprovado' %}
+                                <span class="badge bg-success">Aprovado</span>
+                                {% else %}
+                                <span class="badge bg-danger">Reprovado</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Justificado:</strong>
+                                {% if falta_licenca.justificado %}
+                                <span class="badge bg-success">Sim</span>
+                                {% else %}
+                                <span class="badge bg-danger">Não</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Justificativa -->
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-comment me-1"></i>
+                    Justificativa
+                </div>
+                <div class="card-body">
+                    {{ falta_licenca.justificativa|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentos -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Documentos
+                </div>
+                <div class="card-body">
+                    {% if falta_licenca.atestado %}
+                    <p><strong>Atestado:</strong>
+                        <a href="{{ falta_licenca.atestado.url }}" target="_blank" class="btn btn-sm btn-primary">
+                            <i class="fas fa-download me-1"></i>Download
+                        </a>
+                    </p>
+                    {% endif %}
+                    
+                    {% if falta_licenca.outros_documentos %}
+                    <p><strong>Outros Documentos:</strong></p>
+                    <div class="list-group">
+                        {% for doc in falta_licenca.outros_documentos.all %}
+                        <a href="{{ doc.arquivo.url }}" class="list-group-item list-group-item-action" target="_blank">
+                            <i class="fas fa-file me-2"></i>{{ doc.nome }}
+                        </a>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+
+                    {% if not falta_licenca.atestado and not falta_licenca.outros_documentos.all %}
+                    <p class="text-muted">Nenhum documento anexado.</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Histórico -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-history me-1"></i>
+                    Histórico
+                </div>
+                <div class="card-body">
+                    <div class="timeline">
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-primary"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Registro</h6>
+                                <p class="timeline-text">
+                                    Registrado em {{ falta_licenca.created_at|date:"d/m/Y H:i" }}
+                                    por {{ falta_licenca.created_by }}
+                                </p>
+                            </div>
+                        </div>
+                        
+                        {% if falta_licenca.updated_at != falta_licenca.created_at %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker bg-info"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">Atualização</h6>
+                                <p class="timeline-text">
+                                    Atualizado em {{ falta_licenca.updated_at|date:"d/m/Y H:i" }}
+                                    por {{ falta_licenca.updated_by }}
+                                </p>
+                            </div>
+                        </div>
+                        {% endif %}
+                        
+                        {% if falta_licenca.status != 'pendente' %}
+                        <div class="timeline-item">
+                            <div class="timeline-marker {% if falta_licenca.status == 'aprovado' %}bg-success{% else %}bg-danger{% endif %}"></div>
+                            <div class="timeline-content">
+                                <h6 class="timeline-title">
+                                    {% if falta_licenca.status == 'aprovado' %}Aprovação{% else %}Reprovação{% endif %}
+                                </h6>
+                                <p class="timeline-text">
+                                    {{ falta_licenca.get_status_display }} em {{ falta_licenca.status_date|date:"d/m/Y H:i" }}
+                                    por {{ falta_licenca.status_by }}
+                                </p>
+                                {% if falta_licenca.status_observacao %}
+                                <p class="timeline-text">
+                                    <strong>Observação:</strong><br>
+                                    {{ falta_licenca.status_observacao }}
+                                </p>
+                                {% endif %}
+                            </div>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Observações -->
+        {% if falta_licenca.observacoes %}
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-sticky-note me-1"></i>
+                    Observações
+                </div>
+                <div class="card-body">
+                    {{ falta_licenca.observacoes|linebreaks }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Aprovação -->
+<div class="modal fade" id="aprovarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Aprovar {{ falta_licenca.get_tipo_display }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'rh:falta_licenca_aprovar' falta_licenca.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Confirmar aprovação da {{ falta_licenca.get_tipo_display|lower }} de {{ falta_licenca.funcionario.nome }}?</p>
+                    <p>Período: {{ falta_licenca.data_inicio|date:"d/m/Y" }} - {{ falta_licenca.data_fim|date:"d/m/Y" }}</p>
+                    <div class="mb-3">
+                        <label for="observacao_aprovacao" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacao_aprovacao" name="observacao" rows="3"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-success">Aprovar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Modal de Reprovação -->
+<div class="modal fade" id="reprovarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Reprovar {{ falta_licenca.get_tipo_display }}</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <form action="{% url 'rh:falta_licenca_reprovar' falta_licenca.id %}" method="post">
+                {% csrf_token %}
+                <div class="modal-body">
+                    <p>Confirmar reprovação da {{ falta_licenca.get_tipo_display|lower }} de {{ falta_licenca.funcionario.nome }}?</p>
+                    <p>Período: {{ falta_licenca.data_inicio|date:"d/m/Y" }} - {{ falta_licenca.data_fim|date:"d/m/Y" }}</p>
+                    <div class="mb-3">
+                        <label for="observacao_reprovacao" class="form-label">Motivo da Reprovação</label>
+                        <textarea class="form-control" id="observacao_reprovacao" name="observacao" rows="3" required></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" class="btn btn-danger">Reprovar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+/* Timeline */
+.timeline {
+    position: relative;
+    padding: 1rem;
+    margin: 0 auto;
+}
+
+.timeline::after {
+    content: '';
+    position: absolute;
+    width: 2px;
+    background: #e9ecef;
+    top: 0;
+    bottom: 0;
+    left: 1rem;
+    margin-left: -1px;
+}
+
+.timeline-item {
+    position: relative;
+    margin: 2rem 0;
+    padding-left: 2.5rem;
+}
+
+.timeline-marker {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    border-radius: 50%;
+    left: 0;
+    top: 0;
+    z-index: 1;
+}
+
+.timeline-content {
+    position: relative;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.timeline-title {
+    margin-bottom: 0.5rem;
+}
+
+.timeline-text {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+@media print {
+    .breadcrumb, .btn, .modal, .navbar, .sidebar {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+    }
+    .card-header {
+        background-color: transparent !important;
+        border-bottom: 1px solid #000 !important;
+    }
+    .badge {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+    }
+}
+</style>
+{% endblock %}
+{% endblock %} 

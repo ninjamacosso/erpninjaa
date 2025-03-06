@@ -1,0 +1,357 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Clientes</h1>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novoClienteModal">
+                <i class="fas fa-user-plus fa-sm"></i> Novo Cliente
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Total de Clientes</h3>
+                <h4 class="text-primary">256</h4>
+                <p class="text-success"><i class="fas fa-arrow-up"></i> 12 novos este mês</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3>Compras Realizadas</h3>
+                <h4 class="text-primary">1.234</h4>
+                <p class="text-success">Média de 4.8 por cliente</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-money-bill"></i>
+                </div>
+                <h3>Ticket Médio</h3>
+                <h4 class="text-primary">R$ 850,00</h4>
+                <p class="text-success"><i class="fas fa-arrow-up"></i> 5% este mês</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>Satisfação</h3>
+                <h4 class="text-primary">4.8/5.0</h4>
+                <p class="text-success">95% de avaliações positivas</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select class="form-select" id="tipo">
+                        <option value="">Todos</option>
+                        <option value="pessoa_fisica">Pessoa Física</option>
+                        <option value="pessoa_juridica">Pessoa Jurídica</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select class="form-select" id="estado">
+                        <option value="">Todos</option>
+                        <option value="SP">São Paulo</option>
+                        <option value="RJ">Rio de Janeiro</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="busca" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="busca" placeholder="Nome, CPF/CNPJ ou Email">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search fa-sm"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Clientes -->
+    <div class="custom-table">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Nome/Razão Social</th>
+                        <th>CPF/CNPJ</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Cidade/UF</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>João Silva</td>
+                        <td>123.456.789-00</td>
+                        <td>joao@email.com</td>
+                        <td>(11) 98765-4321</td>
+                        <td>São Paulo/SP</td>
+                        <td><span class="status-badge status-active">Ativo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Empresa XYZ Ltda</td>
+                        <td>12.345.678/0001-90</td>
+                        <td>contato@xyz.com</td>
+                        <td>(11) 3333-4444</td>
+                        <td>São Paulo/SP</td>
+                        <td><span class="status-badge status-inactive">Inativo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Próximo</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Cliente -->
+<div class="modal fade" id="novoClienteModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Cliente</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovoCliente">
+                    <!-- Tipo de Cliente -->
+                    <div class="mb-3">
+                        <label class="form-label">Tipo de Cliente</label>
+                        <div class="btn-group w-100" role="group">
+                            <input type="radio" class="btn-check" name="tipoCliente" id="pessoaFisica" value="pf" checked>
+                            <label class="btn btn-outline-primary" for="pessoaFisica">Pessoa Física</label>
+                            <input type="radio" class="btn-check" name="tipoCliente" id="pessoaJuridica" value="pj">
+                            <label class="btn btn-outline-primary" for="pessoaJuridica">Pessoa Jurídica</label>
+                        </div>
+                    </div>
+
+                    <!-- Dados Pessoais/Empresariais -->
+                    <div id="dadosPF">
+                        <h6 class="mb-3">Dados Pessoais</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="nome" class="form-label">Nome Completo</label>
+                                <input type="text" class="form-control" id="nome" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cpf" class="form-label">CPF</label>
+                                <input type="text" class="form-control" id="cpf" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="dadosPJ" style="display: none;">
+                        <h6 class="mb-3">Dados Empresariais</h6>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="razaoSocial" class="form-label">Razão Social</label>
+                                <input type="text" class="form-control" id="razaoSocial">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="cnpj" class="form-label">CNPJ</label>
+                                <input type="text" class="form-control" id="cnpj">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="nomeFantasia" class="form-label">Nome Fantasia</label>
+                            <input type="text" class="form-control" id="nomeFantasia">
+                        </div>
+                    </div>
+
+                    <!-- Contato -->
+                    <h6 class="mb-3">Contato</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="telefone" required>
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <h6 class="mb-3">Endereço</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="cep" class="form-label">CEP</label>
+                            <input type="text" class="form-control" id="cep" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="logradouro" class="form-label">Logradouro</label>
+                            <input type="text" class="form-control" id="logradouro" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="numero" class="form-label">Número</label>
+                            <input type="text" class="form-control" id="numero" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="complemento" class="form-label">Complemento</label>
+                            <input type="text" class="form-control" id="complemento">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="bairro" class="form-label">Bairro</label>
+                            <input type="text" class="form-control" id="bairro" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cidade" class="form-label">Cidade</label>
+                            <input type="text" class="form-control" id="cidade" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado" required>
+                                <option value="">Selecione</option>
+                                <option value="SP">São Paulo</option>
+                                <option value="RJ">Rio de Janeiro</option>
+                                <!-- Adicionar outros estados -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Observações -->
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formNovoCliente" class="btn btn-primary">Salvar Cliente</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Alternar entre PF e PJ
+    const pessoaFisica = document.getElementById('pessoaFisica');
+    const pessoaJuridica = document.getElementById('pessoaJuridica');
+    const dadosPF = document.getElementById('dadosPF');
+    const dadosPJ = document.getElementById('dadosPJ');
+
+    function toggleTipoCliente() {
+        if (pessoaFisica.checked) {
+            dadosPF.style.display = 'block';
+            dadosPJ.style.display = 'none';
+        } else {
+            dadosPF.style.display = 'none';
+            dadosPJ.style.display = 'block';
+        }
+    }
+
+    pessoaFisica.addEventListener('change', toggleTipoCliente);
+    pessoaJuridica.addEventListener('change', toggleTipoCliente);
+
+    // Máscaras para campos
+    const cpfInput = document.getElementById('cpf');
+    cpfInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            value = value.replace(/(\d{3})(\d{3})(\d{3})(\d{2})/, '$1.$2.$3-$4');
+            e.target.value = value;
+        }
+    });
+
+    const cnpjInput = document.getElementById('cnpj');
+    cnpjInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 14) {
+            value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            e.target.value = value;
+        }
+    });
+
+    const telefoneInput = document.getElementById('telefone');
+    telefoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            value = value.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
+            e.target.value = value;
+        }
+    });
+
+    const cepInput = document.getElementById('cep');
+    cepInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 8) {
+            value = value.replace(/(\d{5})(\d{3})/, '$1-$2');
+            e.target.value = value;
+        }
+    });
+});
+</script>
+{% endblock %} 

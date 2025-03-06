@@ -1,0 +1,314 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Relatórios</h1>
+    </div>
+
+    <!-- Filtros Gerais -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-4">
+                    <label for="periodoInicio" class="form-label">Data Início</label>
+                    <input type="date" class="form-control" id="periodoInicio">
+                </div>
+                <div class="col-md-4">
+                    <label for="periodoFim" class="form-label">Data Fim</label>
+                    <input type="date" class="form-control" id="periodoFim">
+                </div>
+                <div class="col-md-4 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-sync fa-sm"></i> Atualizar Relatórios
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Relatório de Vendas -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Relatório de Vendas</h5>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-8">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="vendasChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-xl-4">
+                            <div class="dashboard-card bg-primary text-white mb-3">
+                                <h4>Total de Vendas</h4>
+                                <h2>R$ 125.750,00</h2>
+                                <p><i class="fas fa-arrow-up"></i> 15% vs mês anterior</p>
+                            </div>
+                            <div class="dashboard-card bg-success text-white">
+                                <h4>Ticket Médio</h4>
+                                <h2>R$ 850,00</h2>
+                                <p><i class="fas fa-arrow-up"></i> 5% vs mês anterior</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Relatório de Produtos -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Relatório de Produtos</h5>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-6">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="produtosChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-xl-6">
+                            <div class="table-responsive">
+                                <table class="table table-hover">
+                                    <thead>
+                                        <tr>
+                                            <th>Produto</th>
+                                            <th>Vendas</th>
+                                            <th>Receita</th>
+                                            <th>Estoque</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td>Produto A</td>
+                                            <td>150</td>
+                                            <td>R$ 45.000,00</td>
+                                            <td>25</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Produto B</td>
+                                            <td>120</td>
+                                            <td>R$ 36.000,00</td>
+                                            <td>30</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Produto C</td>
+                                            <td>90</td>
+                                            <td>R$ 27.000,00</td>
+                                            <td>15</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Relatório de Clientes -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Relatório de Clientes</h5>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-6">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="clientesChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-xl-6">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="dashboard-card">
+                                        <h4>Novos Clientes</h4>
+                                        <h2>27</h2>
+                                        <p class="text-success">+15% este mês</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="dashboard-card">
+                                        <h4>Taxa de Retenção</h4>
+                                        <h2>85%</h2>
+                                        <p class="text-success">+5% vs mês anterior</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="dashboard-card">
+                                        <h4>Clientes Ativos</h4>
+                                        <h2>180</h2>
+                                        <p class="text-success">70% do total</p>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="dashboard-card">
+                                        <h4>Satisfação</h4>
+                                        <h2>4.8/5.0</h2>
+                                        <p class="text-success">98% positivo</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Relatório Financeiro -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card">
+                <div class="card-header">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">Relatório Financeiro</h5>
+                        <button class="btn btn-sm btn-outline-primary">
+                            <i class="fas fa-download"></i> Exportar
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-xl-8">
+                            <div class="chart-container" style="height: 300px;">
+                                <canvas id="financeiroChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="col-xl-4">
+                            <div class="dashboard-card bg-success text-white mb-3">
+                                <h4>Receita Total</h4>
+                                <h2>R$ 125.750,00</h2>
+                                <p><i class="fas fa-arrow-up"></i> 15% vs mês anterior</p>
+                            </div>
+                            <div class="dashboard-card bg-danger text-white mb-3">
+                                <h4>Despesas</h4>
+                                <h2>R$ 75.450,00</h2>
+                                <p><i class="fas fa-arrow-up"></i> 8% vs mês anterior</p>
+                            </div>
+                            <div class="dashboard-card bg-info text-white">
+                                <h4>Lucro Líquido</h4>
+                                <h2>R$ 50.300,00</h2>
+                                <p><i class="fas fa-arrow-up"></i> 25% vs mês anterior</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Gráfico de Vendas
+    const vendasCtx = document.getElementById('vendasChart').getContext('2d');
+    new Chart(vendasCtx, {
+        type: 'line',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+                label: 'Vendas (R$)',
+                data: [65000, 75000, 85000, 95000, 110000, 125750],
+                borderColor: '#4e73df',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Gráfico de Produtos
+    const produtosCtx = document.getElementById('produtosChart').getContext('2d');
+    new Chart(produtosCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Produto A', 'Produto B', 'Produto C', 'Produto D', 'Produto E'],
+            datasets: [{
+                label: 'Vendas por Produto',
+                data: [150, 120, 90, 80, 60],
+                backgroundColor: '#1cc88a'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Gráfico de Clientes
+    const clientesCtx = document.getElementById('clientesChart').getContext('2d');
+    new Chart(clientesCtx, {
+        type: 'pie',
+        data: {
+            labels: ['Novos', 'Recorrentes', 'Inativos'],
+            datasets: [{
+                data: [27, 153, 76],
+                backgroundColor: ['#4e73df', '#1cc88a', '#e74a3b']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Gráfico Financeiro
+    const financeiroCtx = document.getElementById('financeiroChart').getContext('2d');
+    new Chart(financeiroCtx, {
+        type: 'bar',
+        data: {
+            labels: ['Jan', 'Fev', 'Mar', 'Abr', 'Mai', 'Jun'],
+            datasets: [{
+                label: 'Receitas',
+                data: [65000, 75000, 85000, 95000, 110000, 125750],
+                backgroundColor: '#1cc88a'
+            }, {
+                label: 'Despesas',
+                data: [45000, 50000, 55000, 60000, 70000, 75450],
+                backgroundColor: '#e74a3b'
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true
+                }
+            }
+        }
+    });
+});
+</script>
+{% endblock %} 

@@ -1,0 +1,249 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Vendas</h1>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novaVendaModal">
+                <i class="fas fa-plus fa-sm"></i> Nova Venda
+            </button>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-3">
+                    <label for="dataInicio" class="form-label">Data Início</label>
+                    <input type="date" class="form-control" id="dataInicio">
+                </div>
+                <div class="col-md-3">
+                    <label for="dataFim" class="form-label">Data Fim</label>
+                    <input type="date" class="form-control" id="dataFim">
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select class="form-select" id="status">
+                        <option value="">Todos</option>
+                        <option value="concluido">Concluído</option>
+                        <option value="pendente">Pendente</option>
+                        <option value="cancelado">Cancelado</option>
+                    </select>
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search fa-sm"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Vendas -->
+    <div class="custom-table">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>Pedido #</th>
+                        <th>Cliente</th>
+                        <th>Produtos</th>
+                        <th>Valor Total</th>
+                        <th>Status</th>
+                        <th>Data</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>#1234</td>
+                        <td>João Silva</td>
+                        <td>
+                            <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                Produto A, Produto B, Produto C
+                            </span>
+                        </td>
+                        <td>R$ 1.200,00</td>
+                        <td><span class="status-badge status-active">Concluído</span></td>
+                        <td>23/03/2024</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>#1235</td>
+                        <td>Maria Santos</td>
+                        <td>
+                            <span class="d-inline-block text-truncate" style="max-width: 200px;">
+                                Produto D
+                            </span>
+                        </td>
+                        <td>R$ 850,00</td>
+                        <td><span class="status-badge status-pending">Pendente</span></td>
+                        <td>23/03/2024</td>
+                        <td>
+                            <button class="btn btn-sm btn-info" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Próximo</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Nova Venda -->
+<div class="modal fade" id="novaVendaModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Nova Venda</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovaVenda">
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cliente" class="form-label">Cliente</label>
+                            <select class="form-select" id="cliente" required>
+                                <option value="">Selecione um cliente</option>
+                                <option value="1">João Silva</option>
+                                <option value="2">Maria Santos</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="data" class="form-label">Data</label>
+                            <input type="date" class="form-control" id="data" required>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Produtos</label>
+                        <div id="produtosContainer">
+                            <div class="row mb-2">
+                                <div class="col-md-5">
+                                    <select class="form-select" required>
+                                        <option value="">Selecione um produto</option>
+                                        <option value="1">Produto A - R$ 100,00</option>
+                                        <option value="2">Produto B - R$ 150,00</option>
+                                    </select>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="number" class="form-control" placeholder="Quantidade" required>
+                                </div>
+                                <div class="col-md-3">
+                                    <input type="text" class="form-control" placeholder="Valor" readonly>
+                                </div>
+                                <div class="col-md-1">
+                                    <button type="button" class="btn btn-danger btn-sm">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="button" class="btn btn-success btn-sm mt-2" id="addProduto">
+                            <i class="fas fa-plus"></i> Adicionar Produto
+                        </button>
+                    </div>
+
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="formaPagamento" class="form-label">Forma de Pagamento</label>
+                            <select class="form-select" id="formaPagamento" required>
+                                <option value="">Selecione</option>
+                                <option value="dinheiro">Dinheiro</option>
+                                <option value="cartao">Cartão de Crédito</option>
+                                <option value="pix">PIX</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="valorTotal" class="form-label">Valor Total</label>
+                            <input type="text" class="form-control" id="valorTotal" readonly>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formNovaVenda" class="btn btn-primary">Salvar Venda</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Adicionar novo produto
+    document.getElementById('addProduto').addEventListener('click', function() {
+        const container = document.getElementById('produtosContainer');
+        const novoProduto = container.children[0].cloneNode(true);
+        
+        // Limpar valores
+        novoProduto.querySelectorAll('select, input').forEach(input => {
+            input.value = '';
+        });
+        
+        // Adicionar evento para remover
+        novoProduto.querySelector('.btn-danger').addEventListener('click', function() {
+            if (container.children.length > 1) {
+                this.closest('.row').remove();
+            }
+        });
+        
+        container.appendChild(novoProduto);
+    });
+    
+    // Remover produto
+    document.querySelectorAll('.btn-danger').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const container = document.getElementById('produtosContainer');
+            if (container.children.length > 1) {
+                this.closest('.row').remove();
+            }
+        });
+    });
+});
+</script>
+{% endblock %} 

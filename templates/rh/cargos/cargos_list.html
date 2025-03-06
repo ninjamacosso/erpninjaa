@@ -1,0 +1,204 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Cargos e Salários - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Cargos e Salários</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item active">Cargos e Salários</li>
+    </ol>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-1"></i>
+            Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="departamento" class="form-label">Departamento</label>
+                    <select name="departamento" id="departamento" class="form-select">
+                        <option value="">Todos</option>
+                        {% for dep in departamentos %}
+                        <option value="{{ dep.id }}" {% if dep.id == request.GET.departamento|add:"0" %}selected{% endif %}>
+                            {{ dep.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="nivel" class="form-label">Nível</label>
+                    <select name="nivel" id="nivel" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="junior" {% if request.GET.nivel == 'junior' %}selected{% endif %}>Júnior</option>
+                        <option value="pleno" {% if request.GET.nivel == 'pleno' %}selected{% endif %}>Pleno</option>
+                        <option value="senior" {% if request.GET.nivel == 'senior' %}selected{% endif %}>Sênior</option>
+                        <option value="especialista" {% if request.GET.nivel == 'especialista' %}selected{% endif %}>Especialista</option>
+                        <option value="coordenador" {% if request.GET.nivel == 'coordenador' %}selected{% endif %}>Coordenador</option>
+                        <option value="gerente" {% if request.GET.nivel == 'gerente' %}selected{% endif %}>Gerente</option>
+                        <option value="diretor" {% if request.GET.nivel == 'diretor' %}selected{% endif %}>Diretor</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="faixa_salarial" class="form-label">Faixa Salarial</label>
+                    <select name="faixa_salarial" id="faixa_salarial" class="form-select">
+                        <option value="">Todas</option>
+                        <option value="ate_2000" {% if request.GET.faixa_salarial == 'ate_2000' %}selected{% endif %}>Até R$ 2.000</option>
+                        <option value="2000_5000" {% if request.GET.faixa_salarial == '2000_5000' %}selected{% endif %}>R$ 2.000 a R$ 5.000</option>
+                        <option value="5000_10000" {% if request.GET.faixa_salarial == '5000_10000' %}selected{% endif %}>R$ 5.000 a R$ 10.000</option>
+                        <option value="acima_10000" {% if request.GET.faixa_salarial == 'acima_10000' %}selected{% endif %}>Acima de R$ 10.000</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="busca" class="form-label">Busca</label>
+                    <input type="text" class="form-control" id="busca" name="q" value="{{ request.GET.q }}" placeholder="Nome do cargo...">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'rh:cargos_list' %}" class="btn btn-secondary">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Cargos -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-sitemap me-1"></i>
+                Lista de Cargos
+            </div>
+            <div>
+                <a href="{% url 'rh:cargo_create' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-1"></i>Novo Cargo
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Cargo</th>
+                            <th>Departamento</th>
+                            <th>Nível</th>
+                            <th>Salário Base</th>
+                            <th>Funcionários</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for cargo in cargos %}
+                        <tr>
+                            <td>{{ cargo.nome }}</td>
+                            <td>{{ cargo.departamento }}</td>
+                            <td>{{ cargo.get_nivel_display }}</td>
+                            <td>R$ {{ cargo.salario_base|floatformat:2 }}</td>
+                            <td>{{ cargo.funcionarios.count }}</td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'rh:cargo_detail' cargo.id %}" class="btn btn-info btn-sm" title="Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'rh:cargo_update' cargo.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm" title="Excluir" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ cargo.id }}"
+                                            {% if cargo.funcionarios.exists %}disabled{% endif %}>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Modal de Confirmação de Exclusão -->
+                                <div class="modal fade" id="deleteModal{{ cargo.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Tem certeza que deseja excluir o cargo {{ cargo.nome }}?</p>
+                                                {% if cargo.funcionarios.exists %}
+                                                <div class="alert alert-danger">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Este cargo não pode ser excluído pois existem funcionários vinculados a ele.
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <form action="{% url 'rh:cargo_delete' cargo.id %}" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger" {% if cargo.funcionarios.exists %}disabled{% endif %}>
+                                                        Confirmar Exclusão
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhum cargo encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            {% if cargos.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if cargos.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ cargos.previous_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.faixa_salarial %}&faixa_salarial={{ request.GET.faixa_salarial }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in cargos.paginator.page_range %}
+                    {% if cargos.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.faixa_salarial %}&faixa_salarial={{ request.GET.faixa_salarial }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if cargos.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ cargos.next_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}{% if request.GET.nivel %}&nivel={{ request.GET.nivel }}{% endif %}{% if request.GET.faixa_salarial %}&faixa_salarial={{ request.GET.faixa_salarial }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            Próximo
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Próximo</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

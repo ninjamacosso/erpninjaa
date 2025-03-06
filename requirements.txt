@@ -1,0 +1,216 @@
+# Framework principal
+Django==5.1.6
+django-environ==0.11.2
+
+# Banco de dados
+psycopg2-binary==2.9.9
+mysqlclient==2.2.4
+
+# API e documentação
+djangorestframework==3.14.0
+drf-yasg==1.21.7
+
+# Autenticação e segurança
+django-allauth==0.61.1
+django-crispy-forms==2.1
+python-decouple==3.8
+django-csp==3.7
+django-defender==0.9.7
+django-ratelimit==4.1.0
+django-honeypot==1.2.1
+django-secure-auth==2.0.0
+django-session-security==2.6.7
+django-axes==6.3.0
+
+# Interface e frontend
+django-bootstrap5==23.4
+django-widget-tweaks==1.5.0
+django-tables2==2.7.0
+django-filter==23.5
+
+# Relatórios e exportação
+reportlab==4.1.0
+django-import-export==3.3.6
+openpyxl==3.1.2
+pandas==2.2.0
+
+# Storage e media
+django-storages==1.14.2
+Pillow==10.2.0
+
+# Debug e desenvolvimento
+django-debug-toolbar==4.3.0
+django-extensions==3.2.3
+
+# Servidor e cache
+gunicorn==21.2.0
+redis==5.0.1
+django-redis==5.4.0
+
+# Internacionalização
+django-parler==2.3
+
+# Auditoria e monitoramento
+django-auditlog==2.3.0
+
+# Finanças
+django-money==3.4.1
+
+# Tarefas assíncronas
+celery==5.3.6
+
+# Websockets
+channels==4.0.0
+
+# Chat
+chatterbot 
+
+node
+npm
+eslint
+prettier
+jest
+webpack
+babel-core
+babel-loader
+babel-preset-env
+react
+react-dom
+axios
+express
+nodemon
+cors
+jsonwebtoken
+socket.io
+mocha
+chai
+supertest
+playwright
+puppeteer
+cheerio
+d3
+mathjs
+brain.js
+natural
+convnetjs
+synaptic
+socket.io-client
+async
+moment
+lodash
+uuid
+validator
+helmet
+compression
+dotenv
+cross-env
+pm2
+
+bootstrap
+@popperjs/core
+bootstrap-icons
+sass
+node-sass
+bootstrap-vue
+react-bootstrap
+@ng-bootstrap/ng-bootstrap
+bootstrap-table
+jquery
+mdb-ui-kit
+bootswatch
+
+
+node
+npm
+express
+nodemon
+cors
+jsonwebtoken
+socket.io
+mocha
+chai
+supertest
+axios
+dotenv
+helmet
+compression
+async
+lodash
+uuid
+validator
+moment
+pm2
+bcrypt
+passport
+morgan
+cross-env
+node-fetch
+ws
+faker
+yargs
+multer
+body-parser
+cookie-parser
+express-session
+express-validator
+node-cron
+
+typescript
+ts-node
+tslib
+ts-jest
+tslint
+@types/node
+@types/express
+@types/jest
+@types/react
+@types/react-dom
+@types/axios
+@types/cors
+@types/jsonwebtoken
+@types/socket.io
+@types/mocha
+@types/chai
+@types/supertest
+@types/lodash
+@types/uuid
+@types/validator
+@types/moment
+@types/bcrypt
+@types/passport
+@types/multer
+@types/body-parser
+@types/cookie-parser
+@types/express-session
+@types/morgan
+@types/node-fetch
+@types/ws
+@types/faker
+@types/yargs
+
+Tailwind CSS
+Bootstrap
+Sass
+Animate.css
+GSAP
+Suporte a variáveis CSS
+CSS Modules ou Styled Components (para projetos React)
+
+PostgreSQL Server
+pgAdmin (Opcional)
+psycopg2 (Para integração com Python)
+PostgreSQL JDBC Driver (Para integração com Java)
+Npgsql (Para integração com .NET)
+PostGIS (Para suporte a dados geoespaciais)
+pgcrypto (Para criptografia)
+uuid-ossp (Para geração de UUIDs)
+pgtune (Para otimização de performance)
+
+SQLite Database
+SQLite CLI
+SQLite3 (Biblioteca principal)
+DB Browser for SQLite (Opcional)
+sqlite-jdbc (Para integração com Java)
+SQLite.NET (Para integração com .NET)
+sqlite3-pcre (Para suporte a expressões regulares)
+Spatialite (Para suporte a dados geoespaciais)

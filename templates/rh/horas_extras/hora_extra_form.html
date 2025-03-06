@@ -1,0 +1,203 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Hora Extra - {{ form.instance.funcionario.nome }}
+{% else %}
+Registrar Hora Extra
+{% endif %}
+- ERP Ninja
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Hora Extra
+        {% else %}
+        Registrar Hora Extra
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:horas_extras_list' %}">Horas Extras</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar
+            {% else %}
+            Registrar
+            {% endif %}
+        </li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-clock me-1"></i>
+            Dados da Hora Extra
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Dados do Funcionário -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Funcionário</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.funcionario|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info" id="info_funcionario" style="display: none;">
+                            <h6 class="alert-heading">Informações do Funcionário</h6>
+                            <p class="mb-0" id="info_cargo"></p>
+                            <p class="mb-0" id="info_departamento"></p>
+                            <p class="mb-0" id="info_valor_hora"></p>
+                            <p class="mb-0" id="info_horas_mes"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dados da Hora Extra -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Dados da Hora Extra</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.data|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.horas|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.tipo|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Justificativa -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Justificativa</h5>
+                    </div>
+                    <div class="col-12">
+                        {{ form.justificativa|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Status -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Status</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Valor Calculado -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <div class="alert alert-primary">
+                            <h6 class="alert-heading">Valor Calculado</h6>
+                            <p class="mb-0" id="valor_calculado">R$ 0,00</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Salvar
+                        </button>
+                        <a href="{% url 'rh:horas_extras_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do formulário
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+    // Atualiza informações do funcionário
+    var funcionarioSelect = document.getElementById('id_funcionario');
+    if (funcionarioSelect) {
+        funcionarioSelect.addEventListener('change', function() {
+            var funcionarioId = this.value;
+            if (funcionarioId) {
+                fetch(`/rh/api/funcionario/${funcionarioId}/horas_extras/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('info_funcionario').style.display = 'block';
+                        document.getElementById('info_cargo').textContent = `Cargo: ${data.cargo}`;
+                        document.getElementById('info_departamento').textContent = `Departamento: ${data.departamento}`;
+                        document.getElementById('info_valor_hora').textContent = `Valor Hora: R$ ${data.valor_hora.toFixed(2)}`;
+                        document.getElementById('info_horas_mes').textContent = `Horas Extras no Mês: ${data.horas_mes}`;
+                        
+                        // Atualiza o valor calculado
+                        calcularValor(data.valor_hora);
+                    });
+            } else {
+                document.getElementById('info_funcionario').style.display = 'none';
+            }
+        });
+    }
+
+    // Calcula valor da hora extra
+    var horasInput = document.getElementById('id_horas');
+    var tipoSelect = document.getElementById('id_tipo');
+
+    function calcularValor(valorHora) {
+        if (horasInput.value && valorHora) {
+            var horas = parseFloat(horasInput.value);
+            var tipo = tipoSelect.value;
+            var percentual = tipo === 'normal' ? 1.5 : 2.0;  // 50% ou 100%
+            var valor = horas * valorHora * percentual;
+            document.getElementById('valor_calculado').textContent = `R$ ${valor.toFixed(2)}`;
+        }
+    }
+
+    if (horasInput && tipoSelect) {
+        horasInput.addEventListener('input', function() {
+            var valorHora = parseFloat(document.getElementById('info_valor_hora').textContent.split('R$ ')[1]);
+            calcularValor(valorHora);
+        });
+
+        tipoSelect.addEventListener('change', function() {
+            var valorHora = parseFloat(document.getElementById('info_valor_hora').textContent.split('R$ ')[1]);
+            calcularValor(valorHora);
+        });
+    }
+
+    // Formata horas como decimal
+    if (horasInput) {
+        horasInput.addEventListener('input', function(e) {
+            var value = e.target.value.replace(/[^\d.,]/g, '');
+            value = value.replace(',', '.');
+            if (value && !isNaN(value)) {
+                value = parseFloat(value).toFixed(2);
+            }
+            e.target.value = value;
+        });
+    }
+});
+</script>
+{% endblock %} 

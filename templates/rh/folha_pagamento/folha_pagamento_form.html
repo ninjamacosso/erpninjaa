@@ -1,0 +1,301 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Folha de Pagamento - {{ form.instance.funcionario.nome }}
+{% else %}
+Nova Folha de Pagamento
+{% endif %}
+- ERP Ninja
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Folha de Pagamento
+        {% else %}
+        Nova Folha de Pagamento
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:folha_pagamento_list' %}">Folha de Pagamento</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar
+            {% else %}
+            Nova
+            {% endif %}
+        </li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-file-invoice-dollar me-1"></i>
+            Dados da Folha de Pagamento
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Dados Básicos -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Dados Básicos</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.funcionario|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info" id="info_funcionario" style="display: none;">
+                            <h6 class="alert-heading">Informações do Funcionário</h6>
+                            <p class="mb-0" id="info_cargo"></p>
+                            <p class="mb-0" id="info_departamento"></p>
+                            <p class="mb-0" id="info_salario_base"></p>
+                            <p class="mb-0" id="info_admissao"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Período e Data -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Período e Data</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.mes_referencia|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.ano_referencia|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.data_pagamento|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Rendimentos -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Rendimentos</h5>
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.salario_base|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.horas_extras|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.adicional_noturno|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.gratificacoes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Descontos -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Descontos</h5>
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.inss|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.irrf|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.faltas|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.atrasos|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Totais -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Totais</h5>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-success">
+                            <h6 class="alert-heading">Total Rendimentos</h6>
+                            <h4 class="mb-0" id="total_rendimentos">R$ 0,00</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-danger">
+                            <h6 class="alert-heading">Total Descontos</h6>
+                            <h4 class="mb-0" id="total_descontos">R$ 0,00</h4>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="alert alert-primary">
+                            <h6 class="alert-heading">Valor Líquido</h6>
+                            <h4 class="mb-0" id="valor_liquido">R$ 0,00</h4>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'rh:folha_pagamento_list' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do formulário
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Atualiza informações do funcionário
+    const funcionarioSelect = document.getElementById('id_funcionario');
+    if (funcionarioSelect) {
+        funcionarioSelect.addEventListener('change', function() {
+            const funcionarioId = this.value;
+            if (funcionarioId) {
+                fetch(`/rh/api/funcionario/${funcionarioId}/dados_pagamento/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('info_funcionario').style.display = 'block';
+                        document.getElementById('info_cargo').textContent = `Cargo: ${data.cargo}`;
+                        document.getElementById('info_departamento').textContent = `Departamento: ${data.departamento}`;
+                        document.getElementById('info_salario_base').textContent = `Salário Base: R$ ${data.salario_base.toFixed(2)}`;
+                        document.getElementById('info_admissao').textContent = `Data Admissão: ${data.data_admissao}`;
+                        
+                        // Preenche o salário base
+                        document.getElementById('id_salario_base').value = data.salario_base.toFixed(2);
+                        
+                        // Recalcula os totais
+                        calcularTotais();
+                    });
+            } else {
+                document.getElementById('info_funcionario').style.display = 'none';
+            }
+        });
+    }
+
+    // Formatação dos campos monetários
+    const camposMonetarios = [
+        'id_salario_base',
+        'id_horas_extras',
+        'id_adicional_noturno',
+        'id_gratificacoes',
+        'id_inss',
+        'id_irrf',
+        'id_faltas',
+        'id_atrasos'
+    ];
+
+    camposMonetarios.forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) {
+            campo.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = (parseInt(value) / 100).toFixed(2);
+                e.target.value = value;
+                calcularTotais();
+            });
+        }
+    });
+
+    // Calcula os totais
+    function calcularTotais() {
+        // Rendimentos
+        const salarioBase = parseFloat(document.getElementById('id_salario_base').value) || 0;
+        const horasExtras = parseFloat(document.getElementById('id_horas_extras').value) || 0;
+        const adicionalNoturno = parseFloat(document.getElementById('id_adicional_noturno').value) || 0;
+        const gratificacoes = parseFloat(document.getElementById('id_gratificacoes').value) || 0;
+        
+        const totalRendimentos = salarioBase + horasExtras + adicionalNoturno + gratificacoes;
+        
+        // Descontos
+        const inss = parseFloat(document.getElementById('id_inss').value) || 0;
+        const irrf = parseFloat(document.getElementById('id_irrf').value) || 0;
+        const faltas = parseFloat(document.getElementById('id_faltas').value) || 0;
+        const atrasos = parseFloat(document.getElementById('id_atrasos').value) || 0;
+        
+        const totalDescontos = inss + irrf + faltas + atrasos;
+        
+        // Valor Líquido
+        const valorLiquido = totalRendimentos - totalDescontos;
+        
+        // Atualiza os displays
+        document.getElementById('total_rendimentos').textContent = `R$ ${totalRendimentos.toFixed(2)}`;
+        document.getElementById('total_descontos').textContent = `R$ ${totalDescontos.toFixed(2)}`;
+        document.getElementById('valor_liquido').textContent = `R$ ${valorLiquido.toFixed(2)}`;
+    }
+
+    // Calcula INSS e IRRF
+    function calcularImpostos() {
+        const salarioBase = parseFloat(document.getElementById('id_salario_base').value) || 0;
+        const horasExtras = parseFloat(document.getElementById('id_horas_extras').value) || 0;
+        const adicionalNoturno = parseFloat(document.getElementById('id_adicional_noturno').value) || 0;
+        const gratificacoes = parseFloat(document.getElementById('id_gratificacoes').value) || 0;
+        
+        const baseCalculo = salarioBase + horasExtras + adicionalNoturno + gratificacoes;
+        
+        // Calcula INSS
+        let inss = 0;
+        if (baseCalculo <= 1320.00) {
+            inss = baseCalculo * 0.075;
+        } else if (baseCalculo <= 2571.29) {
+            inss = baseCalculo * 0.09;
+        } else if (baseCalculo <= 3856.94) {
+            inss = baseCalculo * 0.12;
+        } else if (baseCalculo <= 7507.49) {
+            inss = baseCalculo * 0.14;
+        } else {
+            inss = 7507.49 * 0.14;
+        }
+        
+        document.getElementById('id_inss').value = inss.toFixed(2);
+        
+        // Calcula IRRF
+        const baseCalculoIR = baseCalculo - inss;
+        let irrf = 0;
+        
+        if (baseCalculoIR <= 2112.00) {
+            irrf = 0;
+        } else if (baseCalculoIR <= 2826.65) {
+            irrf = (baseCalculoIR * 0.075) - 158.40;
+        } else if (baseCalculoIR <= 3751.05) {
+            irrf = (baseCalculoIR * 0.15) - 370.40;
+        } else if (baseCalculoIR <= 4664.68) {
+            irrf = (baseCalculoIR * 0.225) - 651.73;
+        } else {
+            irrf = (baseCalculoIR * 0.275) - 884.96;
+        }
+        
+        document.getElementById('id_irrf').value = irrf.toFixed(2);
+        
+        calcularTotais();
+    }
+
+    // Adiciona evento para calcular impostos quando os rendimentos mudam
+    ['id_salario_base', 'id_horas_extras', 'id_adicional_noturno', 'id_gratificacoes'].forEach(id => {
+        const campo = document.getElementById(id);
+        if (campo) {
+            campo.addEventListener('change', calcularImpostos);
+        }
+    });
+
+    // Calcula os totais iniciais
+    calcularTotais();
+});
+</script>
+{% endblock %} 

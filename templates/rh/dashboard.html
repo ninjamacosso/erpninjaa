@@ -1,0 +1,327 @@
+{% extends "dashboard/base_dashboard.html" %}
+{% load static %}
+
+{% block title %}Dashboard RH - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Dashboard RH</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item active">Dashboard RH</li>
+    </ol>
+
+    <!-- Cards de Indicadores -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-primary text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="small text-white-50">Total de Funcionários</div>
+                            <div class="display-6">{{ total_funcionarios }}</div>
+                        </div>
+                        <i class="fas fa-users fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{% url 'rh:funcionarios_list' %}">Ver Detalhes</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-warning text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="small text-white-50">Processos Seletivos</div>
+                            <div class="display-6">{{ total_processos_seletivos }}</div>
+                        </div>
+                        <i class="fas fa-user-plus fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{% url 'rh:recrutamento_list' %}">Ver Detalhes</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-success text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="small text-white-50">Funcionários em Férias</div>
+                            <div class="display-6">{{ total_ferias }}</div>
+                        </div>
+                        <i class="fas fa-umbrella-beach fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{% url 'rh:ferias_list' %}">Ver Detalhes</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="card bg-danger text-white mb-4">
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div>
+                            <div class="small text-white-50">Faltas/Licenças</div>
+                            <div class="display-6">{{ total_faltas }}</div>
+                        </div>
+                        <i class="fas fa-user-clock fa-2x text-white-50"></i>
+                    </div>
+                </div>
+                <div class="card-footer d-flex align-items-center justify-content-between">
+                    <a class="small text-white stretched-link" href="{% url 'rh:faltas_licencas_list' %}">Ver Detalhes</a>
+                    <div class="small text-white"><i class="fas fa-angle-right"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Gráficos -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-bar me-1"></i>
+                    Funcionários por Departamento
+                </div>
+                <div class="card-body">
+                    <canvas id="funcionariosPorDepartamento" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-pie me-1"></i>
+                    Distribuição por Cargo
+                </div>
+                <div class="card-body">
+                    <canvas id="distribuicaoPorCargo" width="100%" height="40"></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tabelas de Informações -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-calendar me-1"></i>
+                    Próximas Férias
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Funcionário</th>
+                                    <th>Cargo</th>
+                                    <th>Início</th>
+                                    <th>Fim</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for ferias in proximas_ferias %}
+                                <tr>
+                                    <td>{{ ferias.funcionario.nome }}</td>
+                                    <td>{{ ferias.funcionario.cargo }}</td>
+                                    <td>{{ ferias.data_inicio|date:"d/m/Y" }}</td>
+                                    <td>{{ ferias.data_fim|date:"d/m/Y" }}</td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhuma férias programada</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user-plus me-1"></i>
+                    Processos Seletivos em Andamento
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-striped table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Vaga</th>
+                                    <th>Departamento</th>
+                                    <th>Candidatos</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for vaga in processos_seletivos %}
+                                <tr>
+                                    <td>{{ vaga.titulo }}</td>
+                                    <td>{{ vaga.departamento }}</td>
+                                    <td>{{ vaga.candidatos.count }}</td>
+                                    <td>
+                                        {% if vaga.status == 'aberto' %}
+                                        <span class="badge bg-success">Aberto</span>
+                                        {% elif vaga.status == 'em_andamento' %}
+                                        <span class="badge bg-warning">Em Andamento</span>
+                                        {% elif vaga.status == 'finalizado' %}
+                                        <span class="badge bg-primary">Finalizado</span>
+                                        {% else %}
+                                        <span class="badge bg-danger">Cancelado</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% empty %}
+                                <tr>
+                                    <td colspan="4" class="text-center">Nenhum processo seletivo em andamento</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Indicadores Adicionais -->
+    <div class="row">
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-chart-line me-1"></i>
+                    Turnover
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="display-6">{{ turnover|floatformat:2 }}%</div>
+                        <div class="text-{% if turnover > turnover_anterior %}danger{% else %}success{% endif %}">
+                            <i class="fas fa-arrow-{% if turnover > turnover_anterior %}up{% else %}down{% endif %}"></i>
+                            {{ turnover_diferenca|floatformat:2 }}%
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">Comparado ao mês anterior</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-clock me-1"></i>
+                    Horas Extras
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="display-6">{{ total_horas_extras }}</div>
+                        <div class="text-{% if total_horas_extras > total_horas_extras_anterior %}danger{% else %}success{% endif %}">
+                            <i class="fas fa-arrow-{% if total_horas_extras > total_horas_extras_anterior %}up{% else %}down{% endif %}"></i>
+                            {{ horas_extras_diferenca }}h
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">Total de horas extras no mês</div>
+                </div>
+            </div>
+        </div>
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user-check me-1"></i>
+                    Taxa de Retenção
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center justify-content-between">
+                        <div class="display-6">{{ taxa_retencao|floatformat:2 }}%</div>
+                        <div class="text-{% if taxa_retencao < taxa_retencao_anterior %}danger{% else %}success{% endif %}">
+                            <i class="fas fa-arrow-{% if taxa_retencao < taxa_retencao_anterior %}down{% else %}up{% endif %}"></i>
+                            {{ taxa_retencao_diferenca|floatformat:2 }}%
+                        </div>
+                    </div>
+                    <div class="small text-muted mt-2">Comparado ao mês anterior</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Gráfico de Funcionários por Departamento
+    var ctxBar = document.getElementById('funcionariosPorDepartamento');
+    new Chart(ctxBar, {
+        type: 'bar',
+        data: {
+            labels: {{ departamentos_labels|safe }},
+            datasets: [{
+                label: 'Funcionários',
+                data: {{ departamentos_data }},
+                backgroundColor: 'rgba(0, 123, 255, 0.5)',
+                borderColor: 'rgba(0, 123, 255, 1)',
+                borderWidth: 1
+            }]
+        },
+        options: {
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            },
+            plugins: {
+                legend: {
+                    display: false
+                }
+            }
+        }
+    });
+
+    // Gráfico de Distribuição por Cargo
+    var ctxPie = document.getElementById('distribuicaoPorCargo');
+    new Chart(ctxPie, {
+        type: 'pie',
+        data: {
+            labels: {{ cargos_labels|safe }},
+            datasets: [{
+                data: {{ cargos_data }},
+                backgroundColor: [
+                    'rgba(255, 99, 132, 0.5)',
+                    'rgba(54, 162, 235, 0.5)',
+                    'rgba(255, 206, 86, 0.5)',
+                    'rgba(75, 192, 192, 0.5)',
+                    'rgba(153, 102, 255, 0.5)',
+                    'rgba(255, 159, 64, 0.5)'
+                ],
+                borderColor: [
+                    'rgba(255, 99, 132, 1)',
+                    'rgba(54, 162, 235, 1)',
+                    'rgba(255, 206, 86, 1)',
+                    'rgba(75, 192, 192, 1)',
+                    'rgba(153, 102, 255, 1)',
+                    'rgba(255, 159, 64, 1)'
+                ],
+                borderWidth: 1
+            }]
+        },
+        options: {
+            plugins: {
+                legend: {
+                    position: 'right'
+                }
+            }
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,433 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Funcionário: {{ funcionario.nome }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{{ funcionario.nome }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:funcionarios_list' %}">Funcionários</a></li>
+        <li class="breadcrumb-item active">{{ funcionario.nome }}</li>
+    </ol>
+
+    <!-- Ações -->
+    <div class="mb-4">
+        <a href="{% url 'rh:funcionario_update' funcionario.id %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        {% if funcionario.status != 'desligado' %}
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#desligamentoModal">
+            <i class="fas fa-user-times me-1"></i>Desligar
+        </button>
+        {% endif %}
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fas fa-file-alt me-1"></i>Documentos
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'rh:funcionario_ficha' funcionario.id %}">
+                    <i class="fas fa-id-card me-1"></i>Ficha Cadastral
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'rh:funcionario_contrato' funcionario.id %}">
+                    <i class="fas fa-file-contract me-1"></i>Contrato de Trabalho
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'rh:funcionario_cracha' funcionario.id %}">
+                    <i class="fas fa-id-badge me-1"></i>Crachá
+                </a></li>
+            </ul>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>Imprimir
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Informações Básicas -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user me-1"></i>
+                    Informações Básicas
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-4">
+                        {% if funcionario.foto %}
+                        <img src="{{ funcionario.foto.url }}" alt="Foto do funcionário" class="img-fluid rounded-circle mb-2" style="max-width: 150px;">
+                        {% else %}
+                        <img src="{% static 'img/default-avatar.png' %}" alt="Foto padrão" class="img-fluid rounded-circle mb-2" style="max-width: 150px;">
+                        {% endif %}
+                        <h5 class="mb-0">{{ funcionario.nome }}</h5>
+                        <p class="text-muted">{{ funcionario.cargo }}</p>
+                        <span class="badge {% if funcionario.status == 'ativo' %}bg-success{% elif funcionario.status == 'ferias' %}bg-info{% elif funcionario.status == 'afastado' %}bg-warning{% else %}bg-danger{% endif %}">
+                            {{ funcionario.get_status_display }}
+                        </span>
+                    </div>
+                    <dl class="row">
+                        <dt class="col-sm-4">Matrícula:</dt>
+                        <dd class="col-sm-8">{{ funcionario.matricula }}</dd>
+
+                        <dt class="col-sm-4">CPF:</dt>
+                        <dd class="col-sm-8">{{ funcionario.cpf }}</dd>
+
+                        <dt class="col-sm-4">RG:</dt>
+                        <dd class="col-sm-8">{{ funcionario.rg }}</dd>
+
+                        <dt class="col-sm-4">Nascimento:</dt>
+                        <dd class="col-sm-8">{{ funcionario.data_nascimento|date:"d/m/Y" }}</dd>
+
+                        <dt class="col-sm-4">Gênero:</dt>
+                        <dd class="col-sm-8">{{ funcionario.get_genero_display }}</dd>
+
+                        <dt class="col-sm-4">Estado Civil:</dt>
+                        <dd class="col-sm-8">{{ funcionario.get_estado_civil_display }}</dd>
+
+                        <dt class="col-sm-4">Nacionalidade:</dt>
+                        <dd class="col-sm-8">{{ funcionario.nacionalidade }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dados Profissionais -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-briefcase me-1"></i>
+                    Dados Profissionais
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Departamento:</dt>
+                                <dd class="col-sm-8">{{ funcionario.departamento }}</dd>
+
+                                <dt class="col-sm-4">Cargo:</dt>
+                                <dd class="col-sm-8">{{ funcionario.cargo }}</dd>
+
+                                <dt class="col-sm-4">Admissão:</dt>
+                                <dd class="col-sm-8">{{ funcionario.data_admissao|date:"d/m/Y" }}</dd>
+
+                                <dt class="col-sm-4">Tipo Contrato:</dt>
+                                <dd class="col-sm-8">{{ funcionario.get_tipo_contrato_display }}</dd>
+
+                                <dt class="col-sm-4">Jornada:</dt>
+                                <dd class="col-sm-8">{{ funcionario.jornada_trabalho }} horas semanais</dd>
+                            </dl>
+                        </div>
+                        <div class="col-md-6">
+                            <dl class="row">
+                                <dt class="col-sm-4">Salário:</dt>
+                                <dd class="col-sm-8">R$ {{ funcionario.salario|floatformat:2 }}</dd>
+
+                                <dt class="col-sm-4">Banco:</dt>
+                                <dd class="col-sm-8">{{ funcionario.banco }}</dd>
+
+                                <dt class="col-sm-4">Agência:</dt>
+                                <dd class="col-sm-8">{{ funcionario.agencia }}</dd>
+
+                                <dt class="col-sm-4">Conta:</dt>
+                                <dd class="col-sm-8">{{ funcionario.conta }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Contato -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-address-book me-1"></i>
+                    Dados de Contato
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-3">Email:</dt>
+                        <dd class="col-sm-9">{{ funcionario.email }}</dd>
+
+                        <dt class="col-sm-3">Telefone:</dt>
+                        <dd class="col-sm-9">{{ funcionario.telefone }}</dd>
+
+                        <dt class="col-sm-3">Celular:</dt>
+                        <dd class="col-sm-9">{{ funcionario.celular }}</dd>
+
+                        <dt class="col-sm-3">Endereço:</dt>
+                        <dd class="col-sm-9">
+                            {{ funcionario.logradouro }}, {{ funcionario.numero }}
+                            {% if funcionario.complemento %} - {{ funcionario.complemento }}{% endif %}<br>
+                            {{ funcionario.bairro }}<br>
+                            {{ funcionario.cidade }} - {{ funcionario.uf }}<br>
+                            CEP: {{ funcionario.cep }}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentos -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Documentos
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">PIS:</dt>
+                        <dd class="col-sm-8">{{ funcionario.pis }}</dd>
+
+                        <dt class="col-sm-4">CTPS:</dt>
+                        <dd class="col-sm-8">{{ funcionario.ctps }}</dd>
+
+                        <dt class="col-sm-4">Título Eleitor:</dt>
+                        <dd class="col-sm-8">{{ funcionario.titulo_eleitor }}</dd>
+
+                        <dt class="col-sm-4">Reservista:</dt>
+                        <dd class="col-sm-8">{{ funcionario.certificado_reservista|default:"-" }}</dd>
+
+                        <dt class="col-sm-4">CNH:</dt>
+                        <dd class="col-sm-8">
+                            {{ funcionario.cnh|default:"-" }}
+                            {% if funcionario.cnh_categoria %}
+                            (Categoria {{ funcionario.cnh_categoria }})
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Benefícios -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-gift me-1"></i>
+            Benefícios
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Benefício</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Data Adesão</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for beneficio in funcionario.beneficios.all %}
+                        <tr>
+                            <td>{{ beneficio.nome }}</td>
+                            <td>{{ beneficio.get_tipo_display }}</td>
+                            <td>R$ {{ beneficio.valor|floatformat:2 }}</td>
+                            <td>{{ beneficio.beneficios_funcionario.get.data_adesao|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if beneficio.status == 'ativo' %}
+                                <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inativo</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="5" class="text-center">Nenhum benefício cadastrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Histórico -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-history me-1"></i>
+            Histórico
+        </div>
+        <div class="card-body">
+            <ul class="timeline">
+                {% for evento in funcionario.historico.all %}
+                <li class="timeline-item">
+                    <div class="timeline-marker"></div>
+                    <div class="timeline-content">
+                        <h6 class="timeline-title">{{ evento.get_tipo_display }}</h6>
+                        <p class="timeline-date">{{ evento.data|date:"d/m/Y" }}</p>
+                        <p>{{ evento.descricao }}</p>
+                    </div>
+                </li>
+                {% empty %}
+                <li class="text-center">Nenhum evento registrado</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+    <!-- Modal de Desligamento -->
+    <div class="modal fade" id="desligamentoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Desligamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja desligar o funcionário {{ funcionario.nome }}?</p>
+                    <form id="formDesligamento" action="{% url 'rh:funcionario_desligar' funcionario.id %}" method="post">
+                        {% csrf_token %}
+                        <div class="mb-3">
+                            <label for="data_desligamento" class="form-label">Data do Desligamento</label>
+                            <input type="date" class="form-control" id="data_desligamento" name="data_desligamento" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="motivo_desligamento" class="form-label">Motivo do Desligamento</label>
+                            <select class="form-select" id="motivo_desligamento" name="motivo_desligamento" required>
+                                <option value="">Selecione...</option>
+                                <option value="demissao">Demissão</option>
+                                <option value="pedido_demissao">Pedido de Demissão</option>
+                                <option value="acordo">Acordo</option>
+                                <option value="aposentadoria">Aposentadoria</option>
+                                <option value="falecimento">Falecimento</option>
+                                <option value="outros">Outros</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacoes" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <button type="submit" form="formDesligamento" class="btn btn-danger">
+                        Confirmar Desligamento
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* Estilo para a timeline */
+    .timeline {
+        position: relative;
+        padding: 20px 0;
+        list-style: none;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    .timeline:before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: #ddd;
+        left: 50px;
+        margin-left: -1px;
+    }
+
+    .timeline-item {
+        position: relative;
+        margin-bottom: 30px;
+    }
+
+    .timeline-marker {
+        position: absolute;
+        width: 16px;
+        height: 16px;
+        border-radius: 50%;
+        left: 50px;
+        top: 0;
+        margin-left: -8px;
+        background: #fff;
+        border: 2px solid #6c757d;
+    }
+
+    .timeline-content {
+        margin-left: 70px;
+        background: #f8f9fa;
+        padding: 15px;
+        border-radius: 4px;
+    }
+
+    .timeline-title {
+        margin: 0;
+        color: #495057;
+    }
+
+    .timeline-date {
+        margin: 5px 0 10px;
+        color: #6c757d;
+        font-size: 0.875rem;
+    }
+
+    /* Estilos para impressão */
+    @media print {
+        .breadcrumb,
+        .btn,
+        .modal,
+        .no-print {
+            display: none !important;
+        }
+        
+        .card {
+            border: none !important;
+        }
+        
+        .card-header {
+            background-color: transparent !important;
+            border-bottom: 1px solid #000 !important;
+        }
+        
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
+        body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+
+        .timeline:before {
+            display: none;
+        }
+
+        .timeline-marker {
+            display: none;
+        }
+
+        .timeline-content {
+            margin-left: 0;
+            padding: 0;
+            background: none;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Validação da data de desligamento
+        const dataDesligamentoInput = document.getElementById('data_desligamento');
+        if (dataDesligamentoInput) {
+            const hoje = new Date().toISOString().split('T')[0];
+            dataDesligamentoInput.setAttribute('max', hoje);
+        }
+    });
+</script>
+{% endblock %} 

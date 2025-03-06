@@ -1,0 +1,336 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Fornecedores</h1>
+        <div>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#novoFornecedorModal">
+                <i class="fas fa-truck fa-sm"></i> Novo Fornecedor
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards de Resumo -->
+    <div class="row mb-4">
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <h3>Total de Fornecedores</h3>
+                <h4 class="text-primary">45</h4>
+                <p class="text-success"><i class="fas fa-arrow-up"></i> 3 novos este mês</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <h3>Produtos Fornecidos</h3>
+                <h4 class="text-primary">320</h4>
+                <p class="text-success">15 categorias diferentes</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <h3>Prazo Médio</h3>
+                <h4 class="text-primary">7 dias</h4>
+                <p class="text-success"><i class="fas fa-arrow-down"></i> 2 dias a menos</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-star"></i>
+                </div>
+                <h3>Avaliação Média</h3>
+                <h4 class="text-primary">4.5/5.0</h4>
+                <p class="text-success">90% de entregas no prazo</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-body">
+            <form class="row g-3">
+                <div class="col-md-3">
+                    <label for="categoria" class="form-label">Categoria</label>
+                    <select class="form-select" id="categoria">
+                        <option value="">Todas</option>
+                        <option value="eletronicos">Eletrônicos</option>
+                        <option value="moveis">Móveis</option>
+                        <option value="roupas">Roupas</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="estado" class="form-label">Estado</label>
+                    <select class="form-select" id="estado">
+                        <option value="">Todos</option>
+                        <option value="SP">São Paulo</option>
+                        <option value="RJ">Rio de Janeiro</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="busca" class="form-label">Buscar</label>
+                    <input type="text" class="form-control" id="busca" placeholder="Nome, CNPJ ou Email">
+                </div>
+                <div class="col-md-3 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="fas fa-search fa-sm"></i> Filtrar
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Fornecedores -->
+    <div class="custom-table">
+        <div class="table-responsive">
+            <table class="table table-hover">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Razão Social</th>
+                        <th>CNPJ</th>
+                        <th>Email</th>
+                        <th>Telefone</th>
+                        <th>Cidade/UF</th>
+                        <th>Status</th>
+                        <th>Ações</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>1</td>
+                        <td>Fornecedor A Ltda</td>
+                        <td>12.345.678/0001-90</td>
+                        <td>contato@fornecedora.com</td>
+                        <td>(11) 3333-4444</td>
+                        <td>São Paulo/SP</td>
+                        <td><span class="status-badge status-active">Ativo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Fornecedor B Ltda</td>
+                        <td>98.765.432/0001-10</td>
+                        <td>contato@fornecedorb.com</td>
+                        <td>(21) 2222-3333</td>
+                        <td>Rio de Janeiro/RJ</td>
+                        <td><span class="status-badge status-inactive">Inativo</span></td>
+                        <td>
+                            <button class="btn btn-sm btn-info" title="Ver Detalhes">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            <button class="btn btn-sm btn-warning" title="Editar">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm btn-danger" title="Excluir">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Paginação -->
+        <div class="card-footer">
+            <nav>
+                <ul class="pagination justify-content-end mb-0">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Anterior</a>
+                    </li>
+                    <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                    <li class="page-item"><a class="page-link" href="#">2</a></li>
+                    <li class="page-item"><a class="page-link" href="#">3</a></li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Próximo</a>
+                    </li>
+                </ul>
+            </nav>
+        </div>
+    </div>
+</div>
+
+<!-- Modal Novo Fornecedor -->
+<div class="modal fade" id="novoFornecedorModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Novo Fornecedor</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <form id="formNovoFornecedor">
+                    <!-- Dados da Empresa -->
+                    <h6 class="mb-3">Dados da Empresa</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="razaoSocial" class="form-label">Razão Social</label>
+                            <input type="text" class="form-control" id="razaoSocial" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="nomeFantasia" class="form-label">Nome Fantasia</label>
+                            <input type="text" class="form-control" id="nomeFantasia" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cnpj" class="form-label">CNPJ</label>
+                            <input type="text" class="form-control" id="cnpj" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="inscricaoEstadual" class="form-label">Inscrição Estadual</label>
+                            <input type="text" class="form-control" id="inscricaoEstadual">
+                        </div>
+                    </div>
+
+                    <!-- Contato -->
+                    <h6 class="mb-3">Contato</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="telefone" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="contato" class="form-label">Pessoa de Contato</label>
+                            <input type="text" class="form-control" id="contato" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="cargo" class="form-label">Cargo</label>
+                            <input type="text" class="form-control" id="cargo">
+                        </div>
+                    </div>
+
+                    <!-- Endereço -->
+                    <h6 class="mb-3">Endereço</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="cep" class="form-label">CEP</label>
+                            <input type="text" class="form-control" id="cep" required>
+                        </div>
+                        <div class="col-md-8">
+                            <label for="logradouro" class="form-label">Logradouro</label>
+                            <input type="text" class="form-control" id="logradouro" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-4">
+                            <label for="numero" class="form-label">Número</label>
+                            <input type="text" class="form-control" id="numero" required>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="complemento" class="form-label">Complemento</label>
+                            <input type="text" class="form-control" id="complemento">
+                        </div>
+                        <div class="col-md-4">
+                            <label for="bairro" class="form-label">Bairro</label>
+                            <input type="text" class="form-control" id="bairro" required>
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="cidade" class="form-label">Cidade</label>
+                            <input type="text" class="form-control" id="cidade" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="estado" class="form-label">Estado</label>
+                            <select class="form-select" id="estado" required>
+                                <option value="">Selecione</option>
+                                <option value="SP">São Paulo</option>
+                                <option value="RJ">Rio de Janeiro</option>
+                                <!-- Adicionar outros estados -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Informações Comerciais -->
+                    <h6 class="mb-3">Informações Comerciais</h6>
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="categorias" class="form-label">Categorias de Produtos</label>
+                            <select class="form-select" id="categorias" multiple>
+                                <option value="eletronicos">Eletrônicos</option>
+                                <option value="moveis">Móveis</option>
+                                <option value="roupas">Roupas</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label for="prazoEntrega" class="form-label">Prazo Médio de Entrega (dias)</label>
+                            <input type="number" class="form-control" id="prazoEntrega">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="observacoes" class="form-label">Observações</label>
+                        <textarea class="form-control" id="observacoes" rows="3"></textarea>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" form="formNovoFornecedor" class="btn btn-primary">Salvar Fornecedor</button>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Máscara para CNPJ
+    const cnpjInput = document.getElementById('cnpj');
+    cnpjInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 14) {
+            value = value.replace(/(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})/, '$1.$2.$3/$4-$5');
+            e.target.value = value;
+        }
+    });
+
+    // Máscara para telefone
+    const telefoneInput = document.getElementById('telefone');
+    telefoneInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 11) {
+            value = value.replace(/(\d{2})(\d{4,5})(\d{4})/, '($1) $2-$3');
+            e.target.value = value;
+        }
+    });
+
+    // Máscara para CEP
+    const cepInput = document.getElementById('cep');
+    cepInput.addEventListener('input', function(e) {
+        let value = e.target.value.replace(/\D/g, '');
+        if (value.length <= 8) {
+            value = value.replace(/(\d{5})(\d{3})/, '$1-$2');
+            e.target.value = value;
+        }
+    });
+});
+</script>
+{% endblock %} 

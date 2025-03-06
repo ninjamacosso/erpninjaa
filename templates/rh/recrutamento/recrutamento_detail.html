@@ -1,0 +1,489 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Vaga: {{ vaga.titulo }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{{ vaga.titulo }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:recrutamento_list' %}">Recrutamento</a></li>
+        <li class="breadcrumb-item active">{{ vaga.titulo }}</li>
+    </ol>
+
+    <!-- Ações -->
+    <div class="mb-4">
+        <a href="{% url 'rh:recrutamento_update' vaga.id %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        {% if vaga.status == 'aberto' %}
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#iniciarProcessoModal">
+            <i class="fas fa-play me-1"></i>Iniciar Processo
+        </button>
+        {% elif vaga.status == 'em_andamento' %}
+        <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#finalizarProcessoModal">
+            <i class="fas fa-check me-1"></i>Finalizar Processo
+        </button>
+        {% endif %}
+        {% if vaga.status != 'cancelado' %}
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarProcessoModal">
+            <i class="fas fa-times me-1"></i>Cancelar Processo
+        </button>
+        {% endif %}
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fas fa-file-alt me-1"></i>Documentos
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'rh:recrutamento_relatorio' vaga.id %}">
+                    <i class="fas fa-file-pdf me-1"></i>Relatório do Processo
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'rh:recrutamento_planilha' vaga.id %}">
+                    <i class="fas fa-file-excel me-1"></i>Planilha de Candidatos
+                </a></li>
+            </ul>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>Imprimir
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Informações Básicas -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Informações Básicas
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            {% if vaga.status == 'aberto' %}
+                            <span class="badge bg-success">Aberto</span>
+                            {% elif vaga.status == 'em_andamento' %}
+                            <span class="badge bg-warning">Em Andamento</span>
+                            {% elif vaga.status == 'finalizado' %}
+                            <span class="badge bg-primary">Finalizado</span>
+                            {% else %}
+                            <span class="badge bg-danger">Cancelado</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Cargo:</dt>
+                        <dd class="col-sm-8">{{ vaga.cargo }}</dd>
+
+                        <dt class="col-sm-4">Departamento:</dt>
+                        <dd class="col-sm-8">{{ vaga.departamento }}</dd>
+
+                        <dt class="col-sm-4">Vagas:</dt>
+                        <dd class="col-sm-8">{{ vaga.numero_vagas }}</dd>
+
+                        <dt class="col-sm-4">Candidatos:</dt>
+                        <dd class="col-sm-8">{{ vaga.candidatos.count }}</dd>
+
+                        <dt class="col-sm-4">Data Limite:</dt>
+                        <dd class="col-sm-8">{{ vaga.data_limite|date:"d/m/Y" }}</dd>
+
+                        <dt class="col-sm-4">Tipo Contrato:</dt>
+                        <dd class="col-sm-8">{{ vaga.get_tipo_contrato_display }}</dd>
+
+                        <dt class="col-sm-4">Faixa Salarial:</dt>
+                        <dd class="col-sm-8">
+                            {% if vaga.mostrar_salario %}
+                            R$ {{ vaga.faixa_salarial_inicial|floatformat:2 }} - R$ {{ vaga.faixa_salarial_final|floatformat:2 }}
+                            {% else %}
+                            <span class="text-muted">A combinar</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Descrição e Requisitos -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Descrição da Vaga
+                </div>
+                <div class="card-body">
+                    {{ vaga.descricao|linebreaks }}
+                </div>
+            </div>
+
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-list-check me-1"></i>
+                    Requisitos
+                </div>
+                <div class="card-body">
+                    {{ vaga.requisitos|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Benefícios e Competências -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-gift me-1"></i>
+                    Benefícios
+                </div>
+                <div class="card-body">
+                    {{ vaga.beneficios|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-star me-1"></i>
+                    Competências
+                </div>
+                <div class="card-body">
+                    {% for competencia in vaga.competencias.all %}
+                    <span class="badge bg-secondary">{{ competencia.nome }}</span>
+                    {% empty %}
+                    <span class="text-muted">Nenhuma competência definida</span>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Etapas do Processo -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-tasks me-1"></i>
+            Etapas do Processo
+        </div>
+        <div class="card-body">
+            {{ vaga.etapas|linebreaks }}
+        </div>
+    </div>
+
+    <!-- Candidatos -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-users me-1"></i>
+                Candidatos
+            </div>
+            <div>
+                <button type="button" class="btn btn-success btn-sm" data-bs-toggle="modal" data-bs-target="#novoCandidatoModal">
+                    <i class="fas fa-plus me-1"></i>Novo Candidato
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Email</th>
+                            <th>Telefone</th>
+                            <th>Etapa Atual</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for candidato in vaga.candidatos.all %}
+                        <tr>
+                            <td>{{ candidato.nome }}</td>
+                            <td>{{ candidato.email }}</td>
+                            <td>{{ candidato.telefone }}</td>
+                            <td>{{ candidato.etapa_atual }}</td>
+                            <td>
+                                {% if candidato.status == 'em_analise' %}
+                                <span class="badge bg-warning">Em Análise</span>
+                                {% elif candidato.status == 'aprovado' %}
+                                <span class="badge bg-success">Aprovado</span>
+                                {% elif candidato.status == 'reprovado' %}
+                                <span class="badge bg-danger">Reprovado</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Desistente</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'rh:candidato_detail' candidato.id %}" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#avaliarCandidatoModal{{ candidato.id }}">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#excluirCandidatoModal{{ candidato.id }}">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Modal de Avaliação -->
+                                <div class="modal fade" id="avaliarCandidatoModal{{ candidato.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Avaliar Candidato</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{% url 'rh:candidato_avaliar' candidato.id %}" method="post">
+                                                {% csrf_token %}
+                                                <div class="modal-body">
+                                                    <div class="mb-3">
+                                                        <label for="etapa{{ candidato.id }}" class="form-label">Etapa</label>
+                                                        <select class="form-select" id="etapa{{ candidato.id }}" name="etapa" required>
+                                                            <option value="">Selecione...</option>
+                                                            <option value="triagem">Triagem Curricular</option>
+                                                            <option value="entrevista_rh">Entrevista RH</option>
+                                                            <option value="teste_tecnico">Teste Técnico</option>
+                                                            <option value="entrevista_tecnica">Entrevista Técnica</option>
+                                                            <option value="entrevista_gestor">Entrevista com Gestor</option>
+                                                            <option value="proposta">Proposta</option>
+                                                            <option value="documentacao">Documentação</option>
+                                                            <option value="admissao">Admissão</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="status{{ candidato.id }}" class="form-label">Status</label>
+                                                        <select class="form-select" id="status{{ candidato.id }}" name="status" required>
+                                                            <option value="">Selecione...</option>
+                                                            <option value="em_analise">Em Análise</option>
+                                                            <option value="aprovado">Aprovado</option>
+                                                            <option value="reprovado">Reprovado</option>
+                                                            <option value="desistente">Desistente</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="observacoes{{ candidato.id }}" class="form-label">Observações</label>
+                                                        <textarea class="form-control" id="observacoes{{ candidato.id }}" name="observacoes" rows="3"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-primary">Salvar Avaliação</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Modal de Exclusão -->
+                                <div class="modal fade" id="excluirCandidatoModal{{ candidato.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Tem certeza que deseja excluir o candidato {{ candidato.nome }}?</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <form action="{% url 'rh:candidato_delete' candidato.id %}" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">
+                                                        Confirmar Exclusão
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhum candidato cadastrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Novo Candidato -->
+    <div class="modal fade" id="novoCandidatoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Novo Candidato</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'rh:candidato_create' vaga.id %}" method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <div class="mb-3">
+                            <label for="nome" class="form-label">Nome</label>
+                            <input type="text" class="form-control" id="nome" name="nome" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="email" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="telefone" class="form-label">Telefone</label>
+                            <input type="tel" class="form-control" id="telefone" name="telefone" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="curriculo" class="form-label">Currículo</label>
+                            <input type="file" class="form-control" id="curriculo" name="curriculo" accept=".pdf,.doc,.docx" required>
+                        </div>
+                        <div class="mb-3">
+                            <label for="observacoes" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes" name="observacoes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Cadastrar Candidato</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Iniciar Processo -->
+    <div class="modal fade" id="iniciarProcessoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Iniciar Processo Seletivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'rh:recrutamento_iniciar' vaga.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <p>Tem certeza que deseja iniciar o processo seletivo para a vaga {{ vaga.titulo }}?</p>
+                        <div class="mb-3">
+                            <label for="observacoes_inicio" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes_inicio" name="observacoes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Iniciar Processo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Finalizar Processo -->
+    <div class="modal fade" id="finalizarProcessoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Finalizar Processo Seletivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'rh:recrutamento_finalizar' vaga.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <p>Tem certeza que deseja finalizar o processo seletivo para a vaga {{ vaga.titulo }}?</p>
+                        <div class="mb-3">
+                            <label for="observacoes_fim" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes_fim" name="observacoes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Finalizar Processo</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cancelar Processo -->
+    <div class="modal fade" id="cancelarProcessoModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Cancelar Processo Seletivo</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'rh:recrutamento_cancelar' vaga.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <p>Tem certeza que deseja cancelar o processo seletivo para a vaga {{ vaga.titulo }}?</p>
+                        <div class="mb-3">
+                            <label for="motivo_cancelamento" class="form-label">Motivo do Cancelamento</label>
+                            <textarea class="form-control" id="motivo_cancelamento" name="motivo" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Cancelamento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .breadcrumb,
+        .btn,
+        .modal,
+        .no-print {
+            display: none !important;
+        }
+        
+        .card {
+            border: none !important;
+        }
+        
+        .card-header {
+            background-color: transparent !important;
+            border-bottom: 1px solid #000 !important;
+        }
+        
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
+        body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatação do campo de telefone
+        const telefoneInput = document.getElementById('telefone');
+        if (telefoneInput) {
+            telefoneInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                if (value.length >= 7) {
+                    if (value.length <= 10) {
+                        value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                    } else {
+                        value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+                    }
+                } else if (value.length >= 2) {
+                    value = value.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+                }
+                e.target.value = value;
+            });
+        }
+    });
+</script>
+{% endblock %} 

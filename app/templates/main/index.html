@@ -1,0 +1,43 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="hero">
+    <div class="hero-content">
+        <h1>Bem-vindo ao ERP Ninja</h1>
+        <p class="hero-description">
+            Sistema de gestão empresarial moderno e eficiente para o seu negócio.
+        </p>
+        {% if not current_user.is_authenticated %}
+        <div class="hero-actions">
+            <a href="{{ url_for('auth.login') }}" class="btn btn-primary">Entrar</a>
+            <a href="{{ url_for('auth.register') }}" class="btn btn-secondary">Criar Conta</a>
+        </div>
+        {% else %}
+        <div class="hero-actions">
+            <a href="{{ url_for('dashboard.index') }}" class="btn btn-primary">Acessar Dashboard</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<div class="features">
+    <div class="feature-grid">
+        <div class="feature-card">
+            <h3>Gestão Completa</h3>
+            <p>Controle total do seu negócio em um só lugar.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Interface Intuitiva</h3>
+            <p>Design moderno e fácil de usar.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Relatórios Detalhados</h3>
+            <p>Análises e insights para melhores decisões.</p>
+        </div>
+        <div class="feature-card">
+            <h3>Suporte 24/7</h3>
+            <p>Assistência sempre que você precisar.</p>
+        </div>
+    </div>
+</div>
+{% endblock %} 

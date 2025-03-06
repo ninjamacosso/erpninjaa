@@ -1,0 +1,134 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>Editar Perfil</h1>
+    </div>
+
+    <div class="profile-content">
+        <form method="POST" action="" class="profile-form">
+            {{ form.hidden_tag() }}
+
+            <div class="form-section">
+                <h2>Informações Básicas</h2>
+                
+                <div class="form-group">
+                    {{ form.name.label }}
+                    {{ form.name(class="form-control") }}
+                    {% for error in form.name.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.phone.label }}
+                    {{ form.phone(class="form-control") }}
+                    {% for error in form.phone.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h2>Endereço</h2>
+                
+                <div class="form-group">
+                    {{ form.address.label }}
+                    {{ form.address(class="form-control") }}
+                    {% for error in form.address.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.city.label }}
+                        {{ form.city(class="form-control") }}
+                        {% for error in form.city.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.state.label }}
+                        {{ form.state(class="form-control") }}
+                        {% for error in form.state.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        {{ form.country.label }}
+                        {{ form.country(class="form-control") }}
+                        {% for error in form.country.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+
+                    <div class="form-group">
+                        {{ form.postal_code.label }}
+                        {{ form.postal_code(class="form-control") }}
+                        {% for error in form.postal_code.errors %}
+                            <span class="error-message">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+
+            {% if current_user.profile.type == 'business' %}
+            <div class="form-section">
+                <h2>Informações da Empresa</h2>
+                
+                <div class="form-group">
+                    {{ form.company_name.label }}
+                    {{ form.company_name(class="form-control") }}
+                    {% for error in form.company_name.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.company_registration.label }}
+                    {{ form.company_registration(class="form-control") }}
+                    {% for error in form.company_registration.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.company_type.label }}
+                    {{ form.company_type(class="form-control") }}
+                    {% for error in form.company_type.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.industry.label }}
+                    {{ form.industry(class="form-control") }}
+                    {% for error in form.industry.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+
+                <div class="form-group">
+                    {{ form.website.label }}
+                    {{ form.website(class="form-control") }}
+                    {% for error in form.website.errors %}
+                        <span class="error-message">{{ error }}</span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <div class="form-actions">
+                {{ form.submit(class="btn btn-primary") }}
+                <a href="{{ url_for('profile.view') }}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %} 

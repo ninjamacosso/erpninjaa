@@ -1,0 +1,232 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Benefício: {{ beneficio.nome }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{{ beneficio.nome }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:beneficios_list' %}">Benefícios</a></li>
+        <li class="breadcrumb-item active">{{ beneficio.nome }}</li>
+    </ol>
+
+    <!-- Ações -->
+    <div class="mb-4">
+        <a href="{% url 'rh:beneficio_update' beneficio.id %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        {% if not beneficio.funcionarios.exists %}
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash me-1"></i>Excluir
+        </button>
+        {% endif %}
+        <button type="button" class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>Imprimir
+        </button>
+    </div>
+
+    <!-- Informações Básicas -->
+    <div class="row">
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Informações Básicas
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Tipo:</dt>
+                        <dd class="col-sm-8">{{ beneficio.get_tipo_display }}</dd>
+
+                        <dt class="col-sm-4">Fornecedor:</dt>
+                        <dd class="col-sm-8">{{ beneficio.fornecedor }}</dd>
+
+                        <dt class="col-sm-4">Valor:</dt>
+                        <dd class="col-sm-8">R$ {{ beneficio.valor|floatformat:2 }}</dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            {% if beneficio.status == 'ativo' %}
+                            <span class="badge bg-success">Ativo</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inativo</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Início:</dt>
+                        <dd class="col-sm-8">{{ beneficio.data_inicio|date:"d/m/Y" }}</dd>
+
+                        <dt class="col-sm-4">Fim:</dt>
+                        <dd class="col-sm-8">
+                            {% if beneficio.data_fim %}
+                            {{ beneficio.data_fim|date:"d/m/Y" }}
+                            {% else %}
+                            <span class="text-muted">Não definido</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Funcionários:</dt>
+                        <dd class="col-sm-8">{{ beneficio.funcionarios.count }} ativos</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Descrição do Benefício
+                </div>
+                <div class="card-body">
+                    {{ beneficio.descricao|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Regras e Observações -->
+    <div class="row">
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-list-check me-1"></i>
+                    Regras
+                </div>
+                <div class="card-body">
+                    {{ beneficio.regras|linebreaks }}
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-comment me-1"></i>
+                    Observações
+                </div>
+                <div class="card-body">
+                    {{ beneficio.observacoes|default:"Nenhuma observação registrada"|linebreaks }}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Funcionários com o Benefício -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-users me-1"></i>
+            Funcionários com este Benefício
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Cargo</th>
+                            <th>Departamento</th>
+                            <th>Data de Adesão</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for funcionario in beneficio.funcionarios.all %}
+                        <tr>
+                            <td>{{ funcionario.nome }}</td>
+                            <td>{{ funcionario.cargo }}</td>
+                            <td>{{ funcionario.departamento }}</td>
+                            <td>{{ funcionario.beneficios_funcionario.get.data_adesao|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if funcionario.status == 'ativo' %}
+                                <span class="badge bg-success">Ativo</span>
+                                {% elif funcionario.status == 'ferias' %}
+                                <span class="badge bg-info">Férias</span>
+                                {% elif funcionario.status == 'afastado' %}
+                                <span class="badge bg-warning">Afastado</span>
+                                {% elif funcionario.status == 'desligado' %}
+                                <span class="badge bg-danger">Desligado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <a href="{% url 'rh:funcionario_detail' funcionario.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center">Nenhum funcionário com este benefício</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir o benefício {{ beneficio.nome }}?</p>
+                    {% if beneficio.funcionarios.exists %}
+                    <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Este benefício não pode ser excluído pois existem funcionários vinculados a ele.
+                    </div>
+                    {% endif %}
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{% url 'rh:beneficio_delete' beneficio.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger" {% if beneficio.funcionarios.exists %}disabled{% endif %}>
+                            Confirmar Exclusão
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .breadcrumb,
+        .btn,
+        .modal,
+        .no-print {
+            display: none !important;
+        }
+        
+        .card {
+            border: none !important;
+        }
+        
+        .card-header {
+            background-color: transparent !important;
+            border-bottom: 1px solid #000 !important;
+        }
+        
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
+        body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
+</style>
+{% endblock %} 

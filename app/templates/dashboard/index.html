@@ -1,0 +1,169 @@
+{% extends "dashboard/base.html" %}
+
+{% block content %}
+<div class="container-fluid">
+    <!-- Page Heading -->
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h1 class="h3 mb-0 text-gray-800">Dashboard</h1>
+        <div>
+            <button class="btn btn-primary">
+                <i class="fas fa-download fa-sm"></i> Gerar Relatório
+            </button>
+        </div>
+    </div>
+
+    <!-- Cards Row -->
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-shopping-cart"></i>
+                </div>
+                <h3>Vendas do Mês</h3>
+                <h4 class="text-primary">R$ 35.742,00</h4>
+                <p class="text-success"><i class="fas fa-arrow-up"></i> 12% desde o último mês</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <h3>Novos Clientes</h3>
+                <h4 class="text-primary">27</h4>
+                <p class="text-success"><i class="fas fa-arrow-up"></i> 5% desde o último mês</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-box"></i>
+                </div>
+                <h3>Produtos em Estoque</h3>
+                <h4 class="text-primary">1.234</h4>
+                <p class="text-danger"><i class="fas fa-arrow-down"></i> 3% desde o último mês</p>
+            </div>
+        </div>
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="dashboard-card">
+                <div class="card-icon">
+                    <i class="fas fa-money-bill"></i>
+                </div>
+                <h3>Receita Total</h3>
+                <h4 class="text-primary">R$ 287.492,00</h4>
+                <p class="text-success"><i class="fas fa-arrow-up"></i> 8% desde o último mês</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Row -->
+    <div class="row">
+        <div class="col-xl-8 col-lg-7">
+            <div class="chart-container">
+                <h4>Vendas nos Últimos 6 Meses</h4>
+                <canvas id="salesChart"></canvas>
+            </div>
+        </div>
+        <div class="col-xl-4 col-lg-5">
+            <div class="chart-container">
+                <h4>Distribuição de Vendas por Categoria</h4>
+                <canvas id="categoryChart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Orders Table -->
+    <div class="row mt-4">
+        <div class="col-12">
+            <div class="custom-table">
+                <div class="card-header py-3">
+                    <h4 class="m-0 font-weight-bold text-primary">Pedidos Recentes</h4>
+                </div>
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th>Pedido #</th>
+                                    <th>Cliente</th>
+                                    <th>Produto</th>
+                                    <th>Valor</th>
+                                    <th>Status</th>
+                                    <th>Data</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>#1234</td>
+                                    <td>João Silva</td>
+                                    <td>Produto A</td>
+                                    <td>R$ 1.200,00</td>
+                                    <td><span class="status-badge status-active">Concluído</span></td>
+                                    <td>23/03/2024</td>
+                                </tr>
+                                <tr>
+                                    <td>#1235</td>
+                                    <td>Maria Santos</td>
+                                    <td>Produto B</td>
+                                    <td>R$ 850,00</td>
+                                    <td><span class="status-badge status-pending">Pendente</span></td>
+                                    <td>23/03/2024</td>
+                                </tr>
+                                <tr>
+                                    <td>#1236</td>
+                                    <td>Pedro Oliveira</td>
+                                    <td>Produto C</td>
+                                    <td>R$ 2.300,00</td>
+                                    <td><span class="status-badge status-inactive">Cancelado</span></td>
+                                    <td>22/03/2024</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    // Vendas nos Últimos 6 Meses
+    const salesCtx = document.getElementById('salesChart').getContext('2d');
+    new Chart(salesCtx, {
+        type: 'line',
+        data: {
+            labels: ['Out', 'Nov', 'Dez', 'Jan', 'Fev', 'Mar'],
+            datasets: [{
+                label: 'Vendas (R$)',
+                data: [30000, 35000, 45000, 40000, 35000, 45000],
+                borderColor: '#007bff',
+                tension: 0.1
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+
+    // Distribuição de Vendas por Categoria
+    const categoryCtx = document.getElementById('categoryChart').getContext('2d');
+    new Chart(categoryCtx, {
+        type: 'doughnut',
+        data: {
+            labels: ['Eletrônicos', 'Móveis', 'Roupas', 'Acessórios'],
+            datasets: [{
+                data: [35, 25, 20, 20],
+                backgroundColor: ['#007bff', '#28a745', '#ffc107', '#dc3545']
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,208 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Documento: {{ documento.nome }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{{ documento.nome }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:documentos_list' %}">Documentos</a></li>
+        <li class="breadcrumb-item active">{{ documento.nome }}</li>
+    </ol>
+
+    <!-- Ações -->
+    <div class="mb-4">
+        <a href="{% url 'rh:documento_update' documento.id %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        <a href="{{ documento.arquivo.url }}" class="btn btn-primary" target="_blank">
+            <i class="fas fa-eye me-1"></i>Visualizar
+        </a>
+        <a href="{% url 'rh:documento_download' documento.id %}" class="btn btn-info">
+            <i class="fas fa-download me-1"></i>Download
+        </a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteModal">
+            <i class="fas fa-trash me-1"></i>Excluir
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>Imprimir
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Informações Básicas -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Informações Básicas
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Tipo:</dt>
+                        <dd class="col-sm-8">{{ documento.get_tipo_display }}</dd>
+
+                        <dt class="col-sm-4">Funcionário:</dt>
+                        <dd class="col-sm-8">
+                            {% if documento.funcionario %}
+                            <a href="{% url 'rh:funcionario_detail' documento.funcionario.id %}">
+                                {{ documento.funcionario.nome }}
+                            </a>
+                            {% else %}
+                            <span class="text-muted">Não vinculado</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Data Upload:</dt>
+                        <dd class="col-sm-8">{{ documento.data_upload|date:"d/m/Y H:i" }}</dd>
+
+                        <dt class="col-sm-4">Tamanho:</dt>
+                        <dd class="col-sm-8">{{ documento.arquivo.size|filesizeformat }}</dd>
+
+                        <dt class="col-sm-4">Formato:</dt>
+                        <dd class="col-sm-8">{{ documento.arquivo.name|slice:"-3:"|upper }}</dd>
+
+                        <dt class="col-sm-4">Tags:</dt>
+                        <dd class="col-sm-8">
+                            {% for tag in documento.tags.all %}
+                            <span class="badge bg-secondary">{{ tag.nome }}</span>
+                            {% empty %}
+                            <span class="text-muted">Nenhuma tag</span>
+                            {% endfor %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Descrição e Observações -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Descrição
+                </div>
+                <div class="card-body">
+                    {{ documento.descricao|default:"Nenhuma descrição"|linebreaks }}
+                </div>
+            </div>
+
+            {% if documento.observacoes %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-comment me-1"></i>
+                    Observações
+                </div>
+                <div class="card-body">
+                    {{ documento.observacoes|linebreaks }}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Histórico de Versões -->
+    {% if documento.versoes.exists %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-history me-1"></i>
+            Histórico de Versões
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Versão</th>
+                            <th>Data</th>
+                            <th>Usuário</th>
+                            <th>Descrição</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for versao in documento.versoes.all %}
+                        <tr>
+                            <td>{{ versao.numero }}</td>
+                            <td>{{ versao.data_criacao|date:"d/m/Y H:i" }}</td>
+                            <td>{{ versao.usuario }}</td>
+                            <td>{{ versao.descricao }}</td>
+                            <td>
+                                <a href="{{ versao.arquivo.url }}" class="btn btn-primary btn-sm" target="_blank">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <a href="{% url 'rh:documento_versao_download' versao.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-download"></i>
+                                </a>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modal de Confirmação de Exclusão -->
+    <div class="modal fade" id="deleteModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Exclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>Tem certeza que deseja excluir o documento {{ documento.nome }}?</p>
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle me-1"></i>
+                        Esta ação não pode ser desfeita!
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                    <form action="{% url 'rh:documento_delete' documento.id %}" method="post" class="d-inline">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-danger">
+                            Confirmar Exclusão
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .breadcrumb,
+        .btn,
+        .modal,
+        .no-print {
+            display: none !important;
+        }
+        
+        .card {
+            border: none !important;
+        }
+        
+        .card-header {
+            background-color: transparent !important;
+            border-bottom: 1px solid #000 !important;
+        }
+        
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
+        body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
+</style>
+{% endblock %} 

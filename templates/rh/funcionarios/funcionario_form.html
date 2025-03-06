@@ -1,0 +1,391 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Funcionário - {{ form.instance.nome }}
+{% else %}
+Novo Funcionário
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Funcionário - {{ form.instance.nome }}
+        {% else %}
+        Novo Funcionário
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:funcionarios_list' %}">Funcionários</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar Funcionário
+            {% else %}
+            Novo Funcionário
+            {% endif %}
+        </li>
+    </ol>
+
+    <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+        {% csrf_token %}
+
+        <!-- Dados Pessoais -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-user me-1"></i>
+                Dados Pessoais
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.nome|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.foto|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.cpf|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.rg|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.data_nascimento|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.genero|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.estado_civil|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.nacionalidade|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dados de Contato -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-address-book me-1"></i>
+                Dados de Contato
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.email|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.telefone|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.celular|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.cep|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.logradouro|as_crispy_field }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ form.numero|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.complemento|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.bairro|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.cidade|as_crispy_field }}
+                    </div>
+                    <div class="col-md-1">
+                        {{ form.uf|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dados Profissionais -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-briefcase me-1"></i>
+                Dados Profissionais
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        {{ form.matricula|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.data_admissao|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.cargo|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.departamento|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        {{ form.tipo_contrato|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.salario|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.jornada_trabalho|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.banco|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.agencia|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.conta|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Documentos -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-file-alt me-1"></i>
+                Documentos
+            </div>
+            <div class="card-body">
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.pis|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.ctps|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.titulo_eleitor|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.certificado_reservista|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.cnh|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.cnh_categoria|as_crispy_field }}
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Benefícios -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-gift me-1"></i>
+                Benefícios
+            </div>
+            <div class="card-body">
+                {{ form.beneficios|as_crispy_field }}
+            </div>
+        </div>
+
+        <!-- Observações -->
+        <div class="card mb-4">
+            <div class="card-header">
+                <i class="fas fa-comment me-1"></i>
+                Observações
+            </div>
+            <div class="card-body">
+                {{ form.observacoes|as_crispy_field }}
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-end mb-4">
+            <a href="{% url 'rh:funcionarios_list' %}" class="btn btn-secondary me-2">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Salvar</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatação do campo de salário
+        const salarioInput = document.getElementById('id_salario');
+        if (salarioInput) {
+            salarioInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = (parseInt(value) / 100).toFixed(2);
+                e.target.value = value;
+            });
+        }
+
+        // Formatação do CPF
+        const cpfInput = document.getElementById('id_cpf');
+        if (cpfInput) {
+            cpfInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 11) value = value.slice(0, 11);
+                if (value.length >= 9) {
+                    value = value.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2}).*/, '$1.$2.$3-$4');
+                } else if (value.length >= 6) {
+                    value = value.replace(/^(\d{3})(\d{3})(\d{0,3}).*/, '$1.$2.$3');
+                } else if (value.length >= 3) {
+                    value = value.replace(/^(\d{3})(\d{0,3}).*/, '$1.$2');
+                }
+                e.target.value = value;
+            });
+        }
+
+        // Formatação do CEP
+        const cepInput = document.getElementById('id_cep');
+        if (cepInput) {
+            cepInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                if (value.length > 8) value = value.slice(0, 8);
+                if (value.length >= 5) {
+                    value = value.replace(/^(\d{5})(\d{0,3}).*/, '$1-$2');
+                }
+                e.target.value = value;
+            });
+
+            // Busca de CEP
+            cepInput.addEventListener('blur', function() {
+                const cep = this.value.replace(/\D/g, '');
+                if (cep.length === 8) {
+                    fetch(`https://viacep.com.br/ws/${cep}/json/`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (!data.erro) {
+                                document.getElementById('id_logradouro').value = data.logradouro;
+                                document.getElementById('id_bairro').value = data.bairro;
+                                document.getElementById('id_cidade').value = data.localidade;
+                                document.getElementById('id_uf').value = data.uf;
+                            }
+                        });
+                }
+            });
+        }
+
+        // Formatação do telefone e celular
+        const telefoneInput = document.getElementById('id_telefone');
+        const celularInput = document.getElementById('id_celular');
+
+        function formatarTelefone(input) {
+            if (input) {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    if (value.length > 11) value = value.slice(0, 11);
+                    if (value.length >= 7) {
+                        if (value.length <= 10) {
+                            value = value.replace(/^(\d{2})(\d{4})(\d{0,4}).*/, '($1) $2-$3');
+                        } else {
+                            value = value.replace(/^(\d{2})(\d{5})(\d{0,4}).*/, '($1) $2-$3');
+                        }
+                    } else if (value.length >= 2) {
+                        value = value.replace(/^(\d{2})(\d{0,5}).*/, '($1) $2');
+                    }
+                    e.target.value = value;
+                });
+            }
+        }
+
+        formatarTelefone(telefoneInput);
+        formatarTelefone(celularInput);
+
+        // Validação do formulário
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Atualização do salário base ao selecionar o cargo
+        const cargoSelect = document.getElementById('id_cargo');
+        if (cargoSelect && salarioInput) {
+            cargoSelect.addEventListener('change', function() {
+                const cargoId = this.value;
+                if (cargoId && !salarioInput.value) {
+                    fetch(`{% url 'rh:cargo_salario_base' %}?cargo_id=${cargoId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.salario_base) {
+                                salarioInput.value = data.salario_base.toFixed(2);
+                            }
+                        });
+                }
+            });
+        }
+
+        // Validação da data de admissão
+        const dataAdmissaoInput = document.getElementById('id_data_admissao');
+        const dataNascimentoInput = document.getElementById('id_data_nascimento');
+        
+        if (dataAdmissaoInput && dataNascimentoInput) {
+            const hoje = new Date();
+            dataAdmissaoInput.setAttribute('max', hoje.toISOString().split('T')[0]);
+            
+            dataNascimentoInput.addEventListener('change', function() {
+                if (this.value) {
+                    const nascimento = new Date(this.value);
+                    const idade = hoje.getFullYear() - nascimento.getFullYear();
+                    
+                    if (idade < 14) {
+                        this.setCustomValidity('A idade mínima para contratação é 14 anos');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+            
+            dataAdmissaoInput.addEventListener('change', function() {
+                if (this.value && dataNascimentoInput.value) {
+                    const admissao = new Date(this.value);
+                    const nascimento = new Date(dataNascimentoInput.value);
+                    const idade = admissao.getFullYear() - nascimento.getFullYear();
+                    
+                    if (idade < 14) {
+                        this.setCustomValidity('O funcionário deve ter no mínimo 14 anos na data de admissão');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+        }
+    });
+</script>
+{% endblock %} 

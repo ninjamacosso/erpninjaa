@@ -1,0 +1,205 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Férias - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Férias</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item active">Férias</li>
+    </ol>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-1"></i>
+            Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="funcionario" class="form-label">Funcionário</label>
+                    <select name="funcionario" id="funcionario" class="form-select">
+                        <option value="">Todos</option>
+                        {% for func in funcionarios %}
+                        <option value="{{ func.id }}" {% if func.id == request.GET.funcionario|add:"0" %}selected{% endif %}>
+                            {{ func.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="agendada" {% if request.GET.status == 'agendada' %}selected{% endif %}>Agendada</option>
+                        <option value="em_andamento" {% if request.GET.status == 'em_andamento' %}selected{% endif %}>Em Andamento</option>
+                        <option value="concluida" {% if request.GET.status == 'concluida' %}selected{% endif %}>Concluída</option>
+                        <option value="cancelada" {% if request.GET.status == 'cancelada' %}selected{% endif %}>Cancelada</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="periodo" class="form-label">Período</label>
+                    <select name="periodo" id="periodo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="proximas" {% if request.GET.periodo == 'proximas' %}selected{% endif %}>Próximas</option>
+                        <option value="em_andamento" {% if request.GET.periodo == 'em_andamento' %}selected{% endif %}>Em Andamento</option>
+                        <option value="concluidas" {% if request.GET.periodo == 'concluidas' %}selected{% endif %}>Concluídas</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'rh:ferias_list' %}" class="btn btn-secondary">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Férias -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-umbrella-beach me-1"></i>
+                Lista de Férias
+            </div>
+            <div>
+                <a href="{% url 'rh:ferias_create' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-1"></i>Agendar Férias
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Funcionário</th>
+                            <th>Período Aquisitivo</th>
+                            <th>Início</th>
+                            <th>Fim</th>
+                            <th>Dias</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for ferias in ferias_list %}
+                        <tr>
+                            <td>{{ ferias.funcionario.nome }}</td>
+                            <td>{{ ferias.periodo_aquisitivo_inicio|date:"d/m/Y" }} - {{ ferias.periodo_aquisitivo_fim|date:"d/m/Y" }}</td>
+                            <td>{{ ferias.data_inicio|date:"d/m/Y" }}</td>
+                            <td>{{ ferias.data_fim|date:"d/m/Y" }}</td>
+                            <td>{{ ferias.dias }}</td>
+                            <td>
+                                {% if ferias.status == 'agendada' %}
+                                <span class="badge bg-primary">Agendada</span>
+                                {% elif ferias.status == 'em_andamento' %}
+                                <span class="badge bg-warning">Em Andamento</span>
+                                {% elif ferias.status == 'concluida' %}
+                                <span class="badge bg-success">Concluída</span>
+                                {% else %}
+                                <span class="badge bg-danger">Cancelada</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'rh:ferias_detail' ferias.id %}" class="btn btn-info btn-sm" title="Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if ferias.status == 'agendada' %}
+                                    <a href="{% url 'rh:ferias_update' ferias.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm" title="Cancelar" 
+                                            data-bs-toggle="modal" data-bs-target="#cancelarModal{{ ferias.id }}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    {% endif %}
+                                    <a href="{% url 'rh:ferias_pdf' ferias.id %}" class="btn btn-secondary btn-sm" title="Gerar PDF" target="_blank">
+                                        <i class="fas fa-file-pdf"></i>
+                                    </a>
+                                </div>
+
+                                <!-- Modal de Confirmação de Cancelamento -->
+                                <div class="modal fade" id="cancelarModal{{ ferias.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmar Cancelamento</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Tem certeza que deseja cancelar as férias de {{ ferias.funcionario.nome }}?</p>
+                                                <p>Período: {{ ferias.data_inicio|date:"d/m/Y" }} - {{ ferias.data_fim|date:"d/m/Y" }}</p>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                                                <form action="{% url 'rh:ferias_cancelar' ferias.id %}" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger">Sim, Cancelar</button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhum registro de férias encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            {% if ferias_list.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if ferias_list.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ ferias_list.previous_page_number }}{% if request.GET.funcionario %}&funcionario={{ request.GET.funcionario }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in ferias_list.paginator.page_range %}
+                    {% if ferias_list.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.funcionario %}&funcionario={{ request.GET.funcionario }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if ferias_list.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ ferias_list.next_page_number }}{% if request.GET.funcionario %}&funcionario={{ request.GET.funcionario }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}">
+                            Próximo
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Próximo</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

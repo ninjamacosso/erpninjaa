@@ -1,0 +1,220 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Férias - {{ ferias.funcionario.nome }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Férias - {{ ferias.funcionario.nome }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:ferias_list' %}">Férias</a></li>
+        <li class="breadcrumb-item active">Detalhes</li>
+    </ol>
+
+    <!-- Ações -->
+    <div class="mb-4">
+        {% if ferias.status == 'agendada' %}
+        <a href="{% url 'rh:ferias_update' ferias.id %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+            <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        {% endif %}
+        <a href="{% url 'rh:ferias_pdf' ferias.id %}" class="btn btn-info" target="_blank">
+            <i class="fas fa-file-pdf me-1"></i>Gerar PDF
+        </a>
+        <button type="button" class="btn btn-primary" onclick="window.print();">
+            <i class="fas fa-print me-1"></i>Imprimir
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Informações do Funcionário -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-user me-1"></i>
+                    Informações do Funcionário
+                </div>
+                <div class="card-body">
+                    <div class="text-center mb-3">
+                        {% if ferias.funcionario.foto %}
+                        <img src="{{ ferias.funcionario.foto.url }}" alt="Foto do funcionário" class="rounded-circle img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% else %}
+                        <img src="{% static 'img/default-avatar.png' %}" alt="Foto padrão" class="rounded-circle img-thumbnail" style="width: 100px; height: 100px; object-fit: cover;">
+                        {% endif %}
+                    </div>
+                    <p><strong>Nome:</strong> {{ ferias.funcionario.nome }}</p>
+                    <p><strong>Cargo:</strong> {{ ferias.funcionario.cargo }}</p>
+                    <p><strong>Departamento:</strong> {{ ferias.funcionario.departamento }}</p>
+                    <p><strong>Data de Admissão:</strong> {{ ferias.funcionario.data_admissao|date:"d/m/Y" }}</p>
+                    <p><strong>Matrícula:</strong> {{ ferias.funcionario.matricula }}</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Status das Férias -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Status das Férias
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Status:</strong>
+                                {% if ferias.status == 'agendada' %}
+                                <span class="badge bg-primary">Agendada</span>
+                                {% elif ferias.status == 'em_andamento' %}
+                                <span class="badge bg-warning">Em Andamento</span>
+                                {% elif ferias.status == 'concluida' %}
+                                <span class="badge bg-success">Concluída</span>
+                                {% else %}
+                                <span class="badge bg-danger">Cancelada</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Período Aquisitivo:</strong><br>
+                                {{ ferias.periodo_aquisitivo_inicio|date:"d/m/Y" }} - {{ ferias.periodo_aquisitivo_fim|date:"d/m/Y" }}</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p><strong>Período de Gozo:</strong><br>
+                                {{ ferias.data_inicio|date:"d/m/Y" }} - {{ ferias.data_fim|date:"d/m/Y" }}</p>
+                            <p><strong>Dias de Férias:</strong> {{ ferias.dias }} dias</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Abono Pecuniário -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-money-bill-wave me-1"></i>
+                    Abono Pecuniário
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>Solicitou Abono:</strong>
+                                {% if ferias.abono_pecuniario %}
+                                <span class="badge bg-success">Sim</span>
+                                {% else %}
+                                <span class="badge bg-danger">Não</span>
+                                {% endif %}
+                            </p>
+                            {% if ferias.abono_pecuniario %}
+                            <p><strong>Dias de Abono:</strong> {{ ferias.dias_abono }} dias</p>
+                            {% endif %}
+                        </div>
+                        <div class="col-md-6">
+                            {% if ferias.abono_pecuniario %}
+                            <p><strong>Valor do Abono:</strong> R$ {{ ferias.valor_abono|floatformat:2 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Adiantamentos -->
+        <div class="col-xl-6">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-hand-holding-usd me-1"></i>
+                    Adiantamentos
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p><strong>13º Salário:</strong>
+                                {% if ferias.adiantamento_13 %}
+                                <span class="badge bg-success">Sim</span>
+                                {% else %}
+                                <span class="badge bg-danger">Não</span>
+                                {% endif %}
+                            </p>
+                            <p><strong>Férias:</strong>
+                                {% if ferias.adiantamento_ferias %}
+                                <span class="badge bg-success">Sim</span>
+                                {% else %}
+                                <span class="badge bg-danger">Não</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6">
+                            {% if ferias.adiantamento_13 or ferias.adiantamento_ferias %}
+                            <p><strong>Valor Total:</strong> R$ {{ ferias.valor_adiantamento|floatformat:2 }}</p>
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Observações -->
+        {% if ferias.observacoes %}
+        <div class="col-12">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-sticky-note me-1"></i>
+                    Observações
+                </div>
+                <div class="card-body">
+                    {{ ferias.observacoes|linebreaks }}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Modal de Confirmação de Cancelamento -->
+<div class="modal fade" id="cancelarModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Confirmar Cancelamento</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Tem certeza que deseja cancelar estas férias?</p>
+                <p><strong>Funcionário:</strong> {{ ferias.funcionario.nome }}</p>
+                <p><strong>Período:</strong> {{ ferias.data_inicio|date:"d/m/Y" }} - {{ ferias.data_fim|date:"d/m/Y" }}</p>
+                <p class="text-danger"><strong>Atenção:</strong> Esta ação não pode ser desfeita!</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Não</button>
+                <form action="{% url 'rh:ferias_cancelar' ferias.id %}" method="post" class="d-inline">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger">Sim, Cancelar</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+{% block extra_css %}
+<style>
+@media print {
+    .breadcrumb, .btn, .modal, .navbar, .sidebar {
+        display: none !important;
+    }
+    .card {
+        border: none !important;
+    }
+    .card-header {
+        background-color: transparent !important;
+        border-bottom: 1px solid #000 !important;
+    }
+    .badge {
+        border: 1px solid #000 !important;
+        color: #000 !important;
+    }
+}
+</style>
+{% endblock %}
+{% endblock %} 

@@ -1,0 +1,204 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Benefícios - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Benefícios</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item active">Benefícios</li>
+    </ol>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-1"></i>
+            Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="plano_saude" {% if request.GET.tipo == 'plano_saude' %}selected{% endif %}>Plano de Saúde</option>
+                        <option value="plano_dental" {% if request.GET.tipo == 'plano_dental' %}selected{% endif %}>Plano Odontológico</option>
+                        <option value="vale_refeicao" {% if request.GET.tipo == 'vale_refeicao' %}selected{% endif %}>Vale Refeição</option>
+                        <option value="vale_alimentacao" {% if request.GET.tipo == 'vale_alimentacao' %}selected{% endif %}>Vale Alimentação</option>
+                        <option value="vale_transporte" {% if request.GET.tipo == 'vale_transporte' %}selected{% endif %}>Vale Transporte</option>
+                        <option value="seguro_vida" {% if request.GET.tipo == 'seguro_vida' %}selected{% endif %}>Seguro de Vida</option>
+                        <option value="auxilio_creche" {% if request.GET.tipo == 'auxilio_creche' %}selected{% endif %}>Auxílio Creche</option>
+                        <option value="outros" {% if request.GET.tipo == 'outros' %}selected{% endif %}>Outros</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="ativo" {% if request.GET.status == 'ativo' %}selected{% endif %}>Ativo</option>
+                        <option value="inativo" {% if request.GET.status == 'inativo' %}selected{% endif %}>Inativo</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="fornecedor" class="form-label">Fornecedor</label>
+                    <input type="text" class="form-control" id="fornecedor" name="fornecedor" value="{{ request.GET.fornecedor }}" placeholder="Nome do fornecedor...">
+                </div>
+                <div class="col-md-3">
+                    <label for="busca" class="form-label">Busca</label>
+                    <input type="text" class="form-control" id="busca" name="q" value="{{ request.GET.q }}" placeholder="Nome do benefício...">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'rh:beneficios_list' %}" class="btn btn-secondary">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Benefícios -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-gift me-1"></i>
+                Lista de Benefícios
+            </div>
+            <div>
+                <a href="{% url 'rh:beneficio_create' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-1"></i>Novo Benefício
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Tipo</th>
+                            <th>Fornecedor</th>
+                            <th>Valor</th>
+                            <th>Funcionários</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for beneficio in beneficios %}
+                        <tr>
+                            <td>{{ beneficio.nome }}</td>
+                            <td>{{ beneficio.get_tipo_display }}</td>
+                            <td>{{ beneficio.fornecedor }}</td>
+                            <td>R$ {{ beneficio.valor|floatformat:2 }}</td>
+                            <td>{{ beneficio.funcionarios.count }}</td>
+                            <td>
+                                {% if beneficio.status == 'ativo' %}
+                                <span class="badge bg-success">Ativo</span>
+                                {% else %}
+                                <span class="badge bg-danger">Inativo</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'rh:beneficio_detail' beneficio.id %}" class="btn btn-info btn-sm" title="Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'rh:beneficio_update' beneficio.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm" title="Excluir" 
+                                            data-bs-toggle="modal" data-bs-target="#deleteModal{{ beneficio.id }}"
+                                            {% if beneficio.funcionarios.exists %}disabled{% endif %}>
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Modal de Confirmação de Exclusão -->
+                                <div class="modal fade" id="deleteModal{{ beneficio.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmar Exclusão</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Tem certeza que deseja excluir o benefício {{ beneficio.nome }}?</p>
+                                                {% if beneficio.funcionarios.exists %}
+                                                <div class="alert alert-danger">
+                                                    <i class="fas fa-exclamation-triangle me-1"></i>
+                                                    Este benefício não pode ser excluído pois existem funcionários vinculados a ele.
+                                                </div>
+                                                {% endif %}
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <form action="{% url 'rh:beneficio_delete' beneficio.id %}" method="post" class="d-inline">
+                                                    {% csrf_token %}
+                                                    <button type="submit" class="btn btn-danger" {% if beneficio.funcionarios.exists %}disabled{% endif %}>
+                                                        Confirmar Exclusão
+                                                    </button>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhum benefício encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            {% if beneficios.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if beneficios.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ beneficios.previous_page_number }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.fornecedor %}&fornecedor={{ request.GET.fornecedor }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in beneficios.paginator.page_range %}
+                    {% if beneficios.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.fornecedor %}&fornecedor={{ request.GET.fornecedor }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if beneficios.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ beneficios.next_page_number }}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.fornecedor %}&fornecedor={{ request.GET.fornecedor }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            Próximo
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Próximo</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

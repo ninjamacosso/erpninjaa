@@ -1,0 +1,264 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Funcionários - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Funcionários</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item active">Funcionários</li>
+    </ol>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-1"></i>
+            Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="departamento" class="form-label">Departamento</label>
+                    <select name="departamento" id="departamento" class="form-select">
+                        <option value="">Todos</option>
+                        {% for dep in departamentos %}
+                        <option value="{{ dep.id }}" {% if dep.id == request.GET.departamento|add:"0" %}selected{% endif %}>
+                            {{ dep.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="cargo" class="form-label">Cargo</label>
+                    <select name="cargo" id="cargo" class="form-select">
+                        <option value="">Todos</option>
+                        {% for c in cargos %}
+                        <option value="{{ c.id }}" {% if c.id == request.GET.cargo|add:"0" %}selected{% endif %}>
+                            {{ c.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="ativo" {% if request.GET.status == 'ativo' %}selected{% endif %}>Ativo</option>
+                        <option value="ferias" {% if request.GET.status == 'ferias' %}selected{% endif %}>Férias</option>
+                        <option value="afastado" {% if request.GET.status == 'afastado' %}selected{% endif %}>Afastado</option>
+                        <option value="desligado" {% if request.GET.status == 'desligado' %}selected{% endif %}>Desligado</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="busca" class="form-label">Busca</label>
+                    <input type="text" class="form-control" id="busca" name="q" value="{{ request.GET.q }}" placeholder="Nome, CPF, matrícula...">
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'rh:funcionarios_list' %}" class="btn btn-secondary">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Funcionários -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-users me-1"></i>
+                Lista de Funcionários
+            </div>
+            <div>
+                <a href="{% url 'rh:funcionario_create' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-1"></i>Novo Funcionário
+                </a>
+                <button type="button" class="btn btn-secondary btn-sm" onclick="exportarDados()">
+                    <i class="fas fa-file-export me-1"></i>Exportar
+                </button>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Matrícula</th>
+                            <th>Nome</th>
+                            <th>Cargo</th>
+                            <th>Departamento</th>
+                            <th>Admissão</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for funcionario in funcionarios %}
+                        <tr>
+                            <td>{{ funcionario.matricula }}</td>
+                            <td>{{ funcionario.nome }}</td>
+                            <td>{{ funcionario.cargo }}</td>
+                            <td>{{ funcionario.departamento }}</td>
+                            <td>{{ funcionario.data_admissao|date:"d/m/Y" }}</td>
+                            <td>
+                                {% if funcionario.status == 'ativo' %}
+                                <span class="badge bg-success">Ativo</span>
+                                {% elif funcionario.status == 'ferias' %}
+                                <span class="badge bg-info">Férias</span>
+                                {% elif funcionario.status == 'afastado' %}
+                                <span class="badge bg-warning">Afastado</span>
+                                {% elif funcionario.status == 'desligado' %}
+                                <span class="badge bg-danger">Desligado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'rh:funcionario_detail' funcionario.id %}" class="btn btn-info btn-sm" title="Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'rh:funcionario_update' funcionario.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-danger btn-sm" title="Desligar" 
+                                            data-bs-toggle="modal" data-bs-target="#desligamentoModal{{ funcionario.id }}"
+                                            {% if funcionario.status == 'desligado' %}disabled{% endif %}>
+                                        <i class="fas fa-user-times"></i>
+                                    </button>
+                                </div>
+
+                                <!-- Modal de Confirmação de Desligamento -->
+                                <div class="modal fade" id="desligamentoModal{{ funcionario.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Confirmar Desligamento</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <div class="modal-body">
+                                                <p>Tem certeza que deseja desligar o funcionário {{ funcionario.nome }}?</p>
+                                                <form id="formDesligamento{{ funcionario.id }}" action="{% url 'rh:funcionario_desligar' funcionario.id %}" method="post">
+                                                    {% csrf_token %}
+                                                    <div class="mb-3">
+                                                        <label for="data_desligamento{{ funcionario.id }}" class="form-label">Data do Desligamento</label>
+                                                        <input type="date" class="form-control" id="data_desligamento{{ funcionario.id }}" name="data_desligamento" required>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="motivo_desligamento{{ funcionario.id }}" class="form-label">Motivo do Desligamento</label>
+                                                        <select class="form-select" id="motivo_desligamento{{ funcionario.id }}" name="motivo_desligamento" required>
+                                                            <option value="">Selecione...</option>
+                                                            <option value="demissao">Demissão</option>
+                                                            <option value="pedido_demissao">Pedido de Demissão</option>
+                                                            <option value="acordo">Acordo</option>
+                                                            <option value="aposentadoria">Aposentadoria</option>
+                                                            <option value="falecimento">Falecimento</option>
+                                                            <option value="outros">Outros</option>
+                                                        </select>
+                                                    </div>
+                                                    <div class="mb-3">
+                                                        <label for="observacoes{{ funcionario.id }}" class="form-label">Observações</label>
+                                                        <textarea class="form-control" id="observacoes{{ funcionario.id }}" name="observacoes" rows="3"></textarea>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                            <div class="modal-footer">
+                                                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="submit" form="formDesligamento{{ funcionario.id }}" class="btn btn-danger">
+                                                    Confirmar Desligamento
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhum funcionário encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            {% if funcionarios.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if funcionarios.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ funcionarios.previous_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}{% if request.GET.cargo %}&cargo={{ request.GET.cargo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in funcionarios.paginator.page_range %}
+                    {% if funcionarios.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}{% if request.GET.cargo %}&cargo={{ request.GET.cargo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if funcionarios.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ funcionarios.next_page_number }}{% if request.GET.departamento %}&departamento={{ request.GET.departamento }}{% endif %}{% if request.GET.cargo %}&cargo={{ request.GET.cargo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.q %}&q={{ request.GET.q }}{% endif %}">
+                            Próximo
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Próximo</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function exportarDados() {
+        // Obter os filtros atuais
+        const urlParams = new URLSearchParams(window.location.search);
+        const departamento = urlParams.get('departamento') || '';
+        const cargo = urlParams.get('cargo') || '';
+        const status = urlParams.get('status') || '';
+        const q = urlParams.get('q') || '';
+
+        // Construir a URL de exportação com os filtros
+        let exportUrl = "{% url 'rh:funcionarios_export' %}?formato=xlsx";
+        if (departamento) exportUrl += `&departamento=${departamento}`;
+        if (cargo) exportUrl += `&cargo=${cargo}`;
+        if (status) exportUrl += `&status=${status}`;
+        if (q) exportUrl += `&q=${q}`;
+
+        // Redirecionar para a URL de exportação
+        window.location.href = exportUrl;
+    }
+
+    // Validação das datas de desligamento
+    document.addEventListener('DOMContentLoaded', function() {
+        const hoje = new Date().toISOString().split('T')[0];
+        const dataDesligamentoInputs = document.querySelectorAll('input[name="data_desligamento"]');
+        
+        dataDesligamentoInputs.forEach(input => {
+            input.setAttribute('max', hoje);
+        });
+    });
+</script>
+{% endblock %} 

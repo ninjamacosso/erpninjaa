@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="profile-container">
+    <div class="profile-header">
+        <h1>Meu Perfil</h1>
+        <a href="{{ url_for('profile.edit') }}" class="btn btn-primary">Editar Perfil</a>
+    </div>
+
+    <div class="profile-content">
+        <div class="profile-section">
+            <h2>Informações Básicas</h2>
+            <div class="profile-info">
+                <p><strong>Nome:</strong> {{ current_user.profile.name or 'Não informado' }}</p>
+                <p><strong>Email:</strong> {{ current_user.email }}</p>
+                <p><strong>Telefone:</strong> {{ current_user.profile.phone or 'Não informado' }}</p>
+            </div>
+        </div>
+
+        <div class="profile-section">
+            <h2>Endereço</h2>
+            <div class="profile-info">
+                <p><strong>Endereço:</strong> {{ current_user.profile.address or 'Não informado' }}</p>
+                <p><strong>Cidade:</strong> {{ current_user.profile.city or 'Não informado' }}</p>
+                <p><strong>Estado:</strong> {{ current_user.profile.state or 'Não informado' }}</p>
+                <p><strong>País:</strong> {{ current_user.profile.country or 'Não informado' }}</p>
+                <p><strong>Código Postal:</strong> {{ current_user.profile.postal_code or 'Não informado' }}</p>
+            </div>
+        </div>
+
+        {% if current_user.profile.type == 'business' %}
+        <div class="profile-section">
+            <h2>Informações da Empresa</h2>
+            <div class="profile-info">
+                <p><strong>Nome da Empresa:</strong> {{ current_user.profile.company_name or 'Não informado' }}</p>
+                <p><strong>CNPJ/NIF:</strong> {{ current_user.profile.company_registration or 'Não informado' }}</p>
+                <p><strong>Tipo de Empresa:</strong> {{ current_user.profile.company_type or 'Não informado' }}</p>
+                <p><strong>Setor:</strong> {{ current_user.profile.industry or 'Não informado' }}</p>
+                <p><strong>Website:</strong> 
+                    {% if current_user.profile.website %}
+                        <a href="{{ current_user.profile.website }}" target="_blank">{{ current_user.profile.website }}</a>
+                    {% else %}
+                        Não informado
+                    {% endif %}
+                </p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %} 

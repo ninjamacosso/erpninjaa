@@ -1,0 +1,259 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}Gerar Folha de Pagamento Mensal - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Gerar Folha de Pagamento Mensal</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:folha_pagamento_list' %}">Folha de Pagamento</a></li>
+        <li class="breadcrumb-item active">Gerar Folha Mensal</li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-cog me-1"></i>
+            Configurações da Folha Mensal
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Período -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Período</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.mes_referencia|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.ano_referencia|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Data de Pagamento -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Data de Pagamento</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.data_pagamento|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Seleção de Funcionários -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Funcionários</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.departamento|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.funcionarios|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Opções -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Opções</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.incluir_horas_extras|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.incluir_faltas|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.incluir_beneficios|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Preview -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Preview</h5>
+                    </div>
+                    <div class="col-12">
+                        <div class="alert alert-info">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <h6 class="alert-heading mb-1">Resumo da Geração</h6>
+                                    <p class="mb-0" id="resumo_geracao">Selecione os parâmetros acima para ver o resumo</p>
+                                </div>
+                                <button type="button" class="btn btn-info btn-sm" onclick="atualizarPreview()">
+                                    <i class="fas fa-sync me-1"></i>Atualizar Preview
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-12">
+                        <div class="table-responsive">
+                            <table class="table table-sm table-striped" id="preview_table">
+                                <thead>
+                                    <tr>
+                                        <th>Funcionário</th>
+                                        <th>Cargo</th>
+                                        <th>Departamento</th>
+                                        <th>Salário Base</th>
+                                        <th>Adicionais</th>
+                                        <th>Descontos</th>
+                                        <th>Total</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td colspan="7" class="text-center">Nenhum funcionário selecionado</td>
+                                    </tr>
+                                </tbody>
+                                <tfoot>
+                                    <tr class="table-dark">
+                                        <td colspan="3"><strong>Total</strong></td>
+                                        <td><strong id="total_salario_base">R$ 0,00</strong></td>
+                                        <td><strong id="total_adicionais">R$ 0,00</strong></td>
+                                        <td><strong id="total_descontos">R$ 0,00</strong></td>
+                                        <td><strong id="total_geral">R$ 0,00</strong></td>
+                                    </tr>
+                                </tfoot>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'rh:folha_pagamento_list' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Gerar Folha</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do formulário
+    const form = document.querySelector('.needs-validation');
+    form.addEventListener('submit', function(event) {
+        if (!form.checkValidity()) {
+            event.preventDefault();
+            event.stopPropagation();
+        }
+        form.classList.add('was-validated');
+    });
+
+    // Atualiza lista de funcionários quando o departamento muda
+    const departamentoSelect = document.getElementById('id_departamento');
+    const funcionariosSelect = document.getElementById('id_funcionarios');
+    
+    if (departamentoSelect && funcionariosSelect) {
+        departamentoSelect.addEventListener('change', function() {
+            const departamentoId = this.value;
+            if (departamentoId) {
+                fetch(`/rh/api/departamento/${departamentoId}/funcionarios/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        // Limpa as opções atuais
+                        funcionariosSelect.innerHTML = '';
+                        
+                        // Adiciona a opção "Todos"
+                        const optionTodos = document.createElement('option');
+                        optionTodos.value = '';
+                        optionTodos.text = 'Todos';
+                        funcionariosSelect.add(optionTodos);
+                        
+                        // Adiciona os funcionários
+                        data.forEach(funcionario => {
+                            const option = document.createElement('option');
+                            option.value = funcionario.id;
+                            option.text = funcionario.nome;
+                            funcionariosSelect.add(option);
+                        });
+                        
+                        // Atualiza o preview
+                        atualizarPreview();
+                    });
+            } else {
+                // Limpa as opções se nenhum departamento selecionado
+                funcionariosSelect.innerHTML = '<option value="">Selecione um departamento primeiro</option>';
+                atualizarPreview();
+            }
+        });
+    }
+
+    // Atualiza preview quando os funcionários mudam
+    if (funcionariosSelect) {
+        funcionariosSelect.addEventListener('change', atualizarPreview);
+    }
+
+    // Atualiza preview quando as opções mudam
+    ['id_incluir_horas_extras', 'id_incluir_faltas', 'id_incluir_beneficios'].forEach(id => {
+        const checkbox = document.getElementById(id);
+        if (checkbox) {
+            checkbox.addEventListener('change', atualizarPreview);
+        }
+    });
+});
+
+function atualizarPreview() {
+    const departamentoId = document.getElementById('id_departamento').value;
+    const funcionariosSelect = document.getElementById('id_funcionarios');
+    const funcionariosIds = Array.from(funcionariosSelect.selectedOptions).map(option => option.value);
+    const incluirHorasExtras = document.getElementById('id_incluir_horas_extras').checked;
+    const incluirFaltas = document.getElementById('id_incluir_faltas').checked;
+    const incluirBeneficios = document.getElementById('id_incluir_beneficios').checked;
+    
+    // Monta os parâmetros da requisição
+    const params = new URLSearchParams({
+        departamento: departamentoId || '',
+        funcionarios: funcionariosIds.join(','),
+        horas_extras: incluirHorasExtras,
+        faltas: incluirFaltas,
+        beneficios: incluirBeneficios
+    });
+    
+    // Faz a requisição para a API
+    fetch(`/rh/api/folha_pagamento/preview/?${params}`)
+        .then(response => response.json())
+        .then(data => {
+            // Atualiza o resumo
+            document.getElementById('resumo_geracao').textContent = 
+                `${data.total_funcionarios} funcionário(s) selecionado(s) | Total da Folha: R$ ${data.total_geral.toFixed(2)}`;
+            
+            // Atualiza a tabela
+            const tbody = document.querySelector('#preview_table tbody');
+            tbody.innerHTML = '';
+            
+            if (data.funcionarios.length > 0) {
+                data.funcionarios.forEach(func => {
+                    tbody.innerHTML += `
+                        <tr>
+                            <td>${func.nome}</td>
+                            <td>${func.cargo}</td>
+                            <td>${func.departamento}</td>
+                            <td>R$ ${func.salario_base.toFixed(2)}</td>
+                            <td>R$ ${func.adicionais.toFixed(2)}</td>
+                            <td>R$ ${func.descontos.toFixed(2)}</td>
+                            <td>R$ ${func.total.toFixed(2)}</td>
+                        </tr>
+                    `;
+                });
+            } else {
+                tbody.innerHTML = '<tr><td colspan="7" class="text-center">Nenhum funcionário selecionado</td></tr>';
+            }
+            
+            // Atualiza os totais
+            document.getElementById('total_salario_base').textContent = `R$ ${data.total_salario_base.toFixed(2)}`;
+            document.getElementById('total_adicionais').textContent = `R$ ${data.total_adicionais.toFixed(2)}`;
+            document.getElementById('total_descontos').textContent = `R$ ${data.total_descontos.toFixed(2)}`;
+            document.getElementById('total_geral').textContent = `R$ ${data.total_geral.toFixed(2)}`;
+        });
+}
+</script>
+{% endblock %} 

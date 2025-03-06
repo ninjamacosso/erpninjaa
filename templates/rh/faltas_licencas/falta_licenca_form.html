@@ -1,0 +1,205 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Falta/Licença - {{ form.instance.funcionario.nome }}
+{% else %}
+Registrar Falta/Licença
+{% endif %}
+- ERP Ninja
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Falta/Licença
+        {% else %}
+        Registrar Falta/Licença
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:faltas_licencas_list' %}">Faltas e Licenças</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar
+            {% else %}
+            Registrar
+            {% endif %}
+        </li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-calendar-times me-1"></i>
+            Dados da Falta/Licença
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Dados do Funcionário -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Funcionário</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.funcionario|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info" id="info_funcionario" style="display: none;">
+                            <h6 class="alert-heading">Informações do Funcionário</h6>
+                            <p class="mb-0" id="info_cargo"></p>
+                            <p class="mb-0" id="info_departamento"></p>
+                            <p class="mb-0" id="info_faltas"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tipo e Período -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Tipo e Período</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.tipo|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.data_inicio|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.data_fim|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.dias|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.justificado|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Justificativa e Documentos -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Justificativa e Documentos</h5>
+                    </div>
+                    <div class="col-12">
+                        {{ form.justificativa|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.atestado|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.outros_documentos|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Observações -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Observações</h5>
+                    </div>
+                    <div class="col-12">
+                        {{ form.observacoes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Salvar
+                        </button>
+                        <a href="{% url 'rh:faltas_licencas_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do formulário
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+    // Atualiza informações do funcionário
+    var funcionarioSelect = document.getElementById('id_funcionario');
+    if (funcionarioSelect) {
+        funcionarioSelect.addEventListener('change', function() {
+            var funcionarioId = this.value;
+            if (funcionarioId) {
+                fetch(`/rh/api/funcionario/${funcionarioId}/faltas/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('info_funcionario').style.display = 'block';
+                        document.getElementById('info_cargo').textContent = `Cargo: ${data.cargo}`;
+                        document.getElementById('info_departamento').textContent = `Departamento: ${data.departamento}`;
+                        document.getElementById('info_faltas').textContent = `Total de Faltas no Ano: ${data.total_faltas}`;
+                    });
+            } else {
+                document.getElementById('info_funcionario').style.display = 'none';
+            }
+        });
+    }
+
+    // Calcula dias
+    var dataInicioInput = document.getElementById('id_data_inicio');
+    var dataFimInput = document.getElementById('id_data_fim');
+    var diasInput = document.getElementById('id_dias');
+
+    function calcularDias() {
+        if (dataInicioInput.value && dataFimInput.value) {
+            var inicio = new Date(dataInicioInput.value);
+            var fim = new Date(dataFimInput.value);
+            var diffTime = Math.abs(fim - inicio);
+            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            diasInput.value = diffDays;
+        }
+    }
+
+    if (dataInicioInput && dataFimInput) {
+        dataInicioInput.addEventListener('change', calcularDias);
+        dataFimInput.addEventListener('change', calcularDias);
+    }
+
+    // Mostra/esconde campos de acordo com o tipo
+    var tipoSelect = document.getElementById('id_tipo');
+    var atestadoGroup = document.getElementById('div_id_atestado');
+    var outrosDocumentosGroup = document.getElementById('div_id_outros_documentos');
+
+    if (tipoSelect) {
+        tipoSelect.addEventListener('change', function() {
+            if (this.value === 'licenca_medica' || this.value === 'licenca_maternidade') {
+                atestadoGroup.style.display = 'block';
+                outrosDocumentosGroup.style.display = 'block';
+            } else {
+                atestadoGroup.style.display = 'none';
+                outrosDocumentosGroup.style.display = 'none';
+            }
+        });
+
+        // Trigger change event on load
+        tipoSelect.dispatchEvent(new Event('change'));
+    }
+});
+</script>
+{% endblock %} 

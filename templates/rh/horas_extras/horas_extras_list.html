@@ -1,0 +1,248 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Horas Extras - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">Horas Extras</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item active">Horas Extras</li>
+    </ol>
+
+    <!-- Filtros -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-filter me-1"></i>
+            Filtros
+        </div>
+        <div class="card-body">
+            <form method="get" class="row g-3">
+                <div class="col-md-3">
+                    <label for="funcionario" class="form-label">Funcionário</label>
+                    <select name="funcionario" id="funcionario" class="form-select">
+                        <option value="">Todos</option>
+                        {% for func in funcionarios %}
+                        <option value="{{ func.id }}" {% if func.id == request.GET.funcionario|add:"0" %}selected{% endif %}>
+                            {{ func.nome }}
+                        </option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="tipo" class="form-label">Tipo</label>
+                    <select name="tipo" id="tipo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="normal" {% if request.GET.tipo == 'normal' %}selected{% endif %}>Normal (50%)</option>
+                        <option value="domingo" {% if request.GET.tipo == 'domingo' %}selected{% endif %}>Domingo (100%)</option>
+                        <option value="feriado" {% if request.GET.tipo == 'feriado' %}selected{% endif %}>Feriado (100%)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="status" class="form-label">Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="pendente" {% if request.GET.status == 'pendente' %}selected{% endif %}>Pendente</option>
+                        <option value="aprovado" {% if request.GET.status == 'aprovado' %}selected{% endif %}>Aprovado</option>
+                        <option value="reprovado" {% if request.GET.status == 'reprovado' %}selected{% endif %}>Reprovado</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label for="periodo" class="form-label">Período</label>
+                    <select name="periodo" id="periodo" class="form-select">
+                        <option value="">Todos</option>
+                        <option value="mes_atual" {% if request.GET.periodo == 'mes_atual' %}selected{% endif %}>Mês Atual</option>
+                        <option value="mes_anterior" {% if request.GET.periodo == 'mes_anterior' %}selected{% endif %}>Mês Anterior</option>
+                        <option value="ultimos_3_meses" {% if request.GET.periodo == 'ultimos_3_meses' %}selected{% endif %}>Últimos 3 Meses</option>
+                    </select>
+                </div>
+                <div class="col-12">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+                    <a href="{% url 'rh:horas_extras_list' %}" class="btn btn-secondary">Limpar</a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Lista de Horas Extras -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <div>
+                <i class="fas fa-clock me-1"></i>
+                Lista de Horas Extras
+            </div>
+            <div>
+                <a href="{% url 'rh:hora_extra_create' %}" class="btn btn-success btn-sm">
+                    <i class="fas fa-plus me-1"></i>Registrar Hora Extra
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead>
+                        <tr>
+                            <th>Funcionário</th>
+                            <th>Data</th>
+                            <th>Horas</th>
+                            <th>Tipo</th>
+                            <th>Valor</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for hora_extra in horas_extras %}
+                        <tr>
+                            <td>{{ hora_extra.funcionario.nome }}</td>
+                            <td>{{ hora_extra.data|date:"d/m/Y" }}</td>
+                            <td>{{ hora_extra.horas }}</td>
+                            <td>{{ hora_extra.get_tipo_display }}</td>
+                            <td>R$ {{ hora_extra.calcular_valor|floatformat:2 }}</td>
+                            <td>
+                                {% if hora_extra.status == 'pendente' %}
+                                <span class="badge bg-warning">Pendente</span>
+                                {% elif hora_extra.status == 'aprovado' %}
+                                <span class="badge bg-success">Aprovado</span>
+                                {% else %}
+                                <span class="badge bg-danger">Reprovado</span>
+                                {% endif %}
+                            </td>
+                            <td>
+                                <div class="btn-group" role="group">
+                                    <a href="{% url 'rh:hora_extra_detail' hora_extra.id %}" class="btn btn-info btn-sm" title="Detalhes">
+                                        <i class="fas fa-eye"></i>
+                                    </a>
+                                    {% if hora_extra.status == 'pendente' %}
+                                    <a href="{% url 'rh:hora_extra_update' hora_extra.id %}" class="btn btn-warning btn-sm" title="Editar">
+                                        <i class="fas fa-edit"></i>
+                                    </a>
+                                    <button type="button" class="btn btn-success btn-sm" title="Aprovar" 
+                                            data-bs-toggle="modal" data-bs-target="#aprovarModal{{ hora_extra.id }}">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-danger btn-sm" title="Reprovar" 
+                                            data-bs-toggle="modal" data-bs-target="#reprovarModal{{ hora_extra.id }}">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                    {% endif %}
+                                </div>
+
+                                <!-- Modal de Aprovação -->
+                                <div class="modal fade" id="aprovarModal{{ hora_extra.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Aprovar Hora Extra</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{% url 'rh:hora_extra_aprovar' hora_extra.id %}" method="post">
+                                                {% csrf_token %}
+                                                <div class="modal-body">
+                                                    <p>Confirmar aprovação da hora extra de {{ hora_extra.funcionario.nome }}?</p>
+                                                    <p>Data: {{ hora_extra.data|date:"d/m/Y" }}</p>
+                                                    <p>Horas: {{ hora_extra.horas }}</p>
+                                                    <p>Tipo: {{ hora_extra.get_tipo_display }}</p>
+                                                    <p>Valor: R$ {{ hora_extra.calcular_valor|floatformat:2 }}</p>
+                                                    <div class="mb-3">
+                                                        <label for="observacao_aprovacao{{ hora_extra.id }}" class="form-label">Observações</label>
+                                                        <textarea class="form-control" id="observacao_aprovacao{{ hora_extra.id }}" name="observacao" rows="3"></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-success">Aprovar</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Modal de Reprovação -->
+                                <div class="modal fade" id="reprovarModal{{ hora_extra.id }}" tabindex="-1">
+                                    <div class="modal-dialog">
+                                        <div class="modal-content">
+                                            <div class="modal-header">
+                                                <h5 class="modal-title">Reprovar Hora Extra</h5>
+                                                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                            </div>
+                                            <form action="{% url 'rh:hora_extra_reprovar' hora_extra.id %}" method="post">
+                                                {% csrf_token %}
+                                                <div class="modal-body">
+                                                    <p>Confirmar reprovação da hora extra de {{ hora_extra.funcionario.nome }}?</p>
+                                                    <p>Data: {{ hora_extra.data|date:"d/m/Y" }}</p>
+                                                    <p>Horas: {{ hora_extra.horas }}</p>
+                                                    <p>Tipo: {{ hora_extra.get_tipo_display }}</p>
+                                                    <div class="mb-3">
+                                                        <label for="observacao_reprovacao{{ hora_extra.id }}" class="form-label">Motivo da Reprovação</label>
+                                                        <textarea class="form-control" id="observacao_reprovacao{{ hora_extra.id }}" name="observacao" rows="3" required></textarea>
+                                                    </div>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                    <button type="submit" class="btn btn-danger">Reprovar</button>
+                                                </div>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhum registro de hora extra encontrado</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Paginação -->
+            {% if horas_extras.has_other_pages %}
+            <nav>
+                <ul class="pagination justify-content-center">
+                    {% if horas_extras.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ horas_extras.previous_page_number }}{% if request.GET.funcionario %}&funcionario={{ request.GET.funcionario }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}">
+                            Anterior
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Anterior</span>
+                    </li>
+                    {% endif %}
+
+                    {% for num in horas_extras.paginator.page_range %}
+                    {% if horas_extras.number == num %}
+                    <li class="page-item active">
+                        <span class="page-link">{{ num }}</span>
+                    </li>
+                    {% else %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ num }}{% if request.GET.funcionario %}&funcionario={{ request.GET.funcionario }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}">
+                            {{ num }}
+                        </a>
+                    </li>
+                    {% endif %}
+                    {% endfor %}
+
+                    {% if horas_extras.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ horas_extras.next_page_number }}{% if request.GET.funcionario %}&funcionario={{ request.GET.funcionario }}{% endif %}{% if request.GET.tipo %}&tipo={{ request.GET.tipo }}{% endif %}{% if request.GET.status %}&status={{ request.GET.status }}{% endif %}{% if request.GET.periodo %}&periodo={{ request.GET.periodo }}{% endif %}">
+                            Próximo
+                        </a>
+                    </li>
+                    {% else %}
+                    <li class="page-item disabled">
+                        <span class="page-link">Próximo</span>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %} 

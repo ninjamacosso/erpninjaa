@@ -1,0 +1,240 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Vaga - {{ form.instance.titulo }}
+{% else %}
+Nova Vaga
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Vaga - {{ form.instance.titulo }}
+        {% else %}
+        Nova Vaga
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:recrutamento_list' %}">Recrutamento</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar Vaga
+            {% else %}
+            Nova Vaga
+            {% endif %}
+        </li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-users me-1"></i>
+            Dados da Vaga
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.titulo|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.cargo|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.departamento|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        {{ form.numero_vagas|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.data_limite|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.tipo_contrato|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.descricao|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.requisitos|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.beneficios|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.competencias|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.faixa_salarial_inicial|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.faixa_salarial_final|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.mostrar_salario|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.etapas|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.observacoes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'rh:recrutamento_list' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatação dos campos de salário
+        const salarioInputs = document.querySelectorAll('#id_faixa_salarial_inicial, #id_faixa_salarial_final');
+        salarioInputs.forEach(input => {
+            if (input) {
+                input.addEventListener('input', function(e) {
+                    let value = e.target.value.replace(/\D/g, '');
+                    value = (parseInt(value) / 100).toFixed(2);
+                    e.target.value = value;
+                });
+            }
+        });
+
+        // Validação do formulário
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Validação da data limite
+        const dataLimiteInput = document.getElementById('id_data_limite');
+        if (dataLimiteInput) {
+            const hoje = new Date();
+            hoje.setHours(0, 0, 0, 0);
+            
+            dataLimiteInput.addEventListener('change', function() {
+                const dataLimite = new Date(this.value);
+                if (dataLimite < hoje) {
+                    this.setCustomValidity('A data limite deve ser igual ou posterior a hoje');
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+        }
+
+        // Validação da faixa salarial
+        const salarioInicialInput = document.getElementById('id_faixa_salarial_inicial');
+        const salarioFinalInput = document.getElementById('id_faixa_salarial_final');
+        
+        if (salarioInicialInput && salarioFinalInput) {
+            function validarFaixaSalarial() {
+                const inicial = parseFloat(salarioInicialInput.value) || 0;
+                const final = parseFloat(salarioFinalInput.value) || 0;
+                
+                if (inicial > final && final > 0) {
+                    salarioFinalInput.setCustomValidity('O salário final deve ser maior que o inicial');
+                } else {
+                    salarioFinalInput.setCustomValidity('');
+                }
+            }
+            
+            salarioInicialInput.addEventListener('change', validarFaixaSalarial);
+            salarioFinalInput.addEventListener('change', validarFaixaSalarial);
+        }
+
+        // Atualização do salário baseado no cargo
+        const cargoSelect = document.getElementById('id_cargo');
+        if (cargoSelect && salarioInicialInput && salarioFinalInput) {
+            cargoSelect.addEventListener('change', function() {
+                const cargoId = this.value;
+                if (cargoId && !salarioInicialInput.value && !salarioFinalInput.value) {
+                    fetch(`{% url 'rh:cargo_salario_base' %}?cargo_id=${cargoId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            if (data.salario_base) {
+                                const salarioBase = parseFloat(data.salario_base);
+                                salarioInicialInput.value = (salarioBase * 0.8).toFixed(2);
+                                salarioFinalInput.value = (salarioBase * 1.2).toFixed(2);
+                            }
+                        });
+                }
+            });
+        }
+
+        // Inicialização do select2 para competências
+        const competenciasInput = document.getElementById('id_competencias');
+        if (competenciasInput) {
+            $(competenciasInput).select2({
+                tags: true,
+                tokenSeparators: [',', ' '],
+                placeholder: 'Digite ou selecione competências...',
+                allowClear: true
+            });
+        }
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<style>
+    .select2-container {
+        width: 100% !important;
+    }
+    .select2-container .select2-selection--multiple {
+        min-height: 38px;
+    }
+    .select2-container--default .select2-selection--multiple {
+        border: 1px solid #ced4da;
+        border-radius: 0.25rem;
+    }
+</style>
+{% endblock %}
+
+{% block extra_scripts %}
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+{% endblock %} 

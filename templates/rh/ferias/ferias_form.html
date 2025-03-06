@@ -1,0 +1,242 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Férias - {{ form.instance.funcionario.nome }}
+{% else %}
+Agendar Férias
+{% endif %}
+- ERP Ninja
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Férias
+        {% else %}
+        Agendar Férias
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:ferias_list' %}">Férias</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar
+            {% else %}
+            Agendar
+            {% endif %}
+        </li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-umbrella-beach me-1"></i>
+            Dados das Férias
+        </div>
+        <div class="card-body">
+            <form method="post" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <!-- Dados do Funcionário -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Funcionário</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.funcionario|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        <div class="alert alert-info" id="info_funcionario" style="display: none;">
+                            <h6 class="alert-heading">Informações do Funcionário</h6>
+                            <p class="mb-0" id="info_admissao"></p>
+                            <p class="mb-0" id="info_ferias_vencidas"></p>
+                            <p class="mb-0" id="info_ultima_ferias"></p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Período Aquisitivo -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Período Aquisitivo</h5>
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.periodo_aquisitivo_inicio|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.periodo_aquisitivo_fim|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Período de Gozo -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Período de Gozo</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.data_inicio|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.data_fim|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.dias|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Abono Pecuniário -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Abono Pecuniário</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.abono_pecuniario|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.dias_abono|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.valor_abono|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Adiantamento -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Adiantamento</h5>
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.adiantamento_13|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.adiantamento_ferias|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.valor_adiantamento|as_crispy_field }}
+                    </div>
+                </div>
+
+                <!-- Observações -->
+                <div class="row mb-4">
+                    <div class="col-12">
+                        <h5 class="border-bottom pb-2">Observações</h5>
+                    </div>
+                    <div class="col-12">
+                        {{ form.observacoes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12">
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-save me-1"></i>Salvar
+                        </button>
+                        <a href="{% url 'rh:ferias_list' %}" class="btn btn-secondary">
+                            <i class="fas fa-times me-1"></i>Cancelar
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Validação do formulário
+    var forms = document.querySelectorAll('.needs-validation');
+    Array.prototype.slice.call(forms).forEach(function(form) {
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        }, false);
+    });
+
+    // Atualiza informações do funcionário
+    var funcionarioSelect = document.getElementById('id_funcionario');
+    if (funcionarioSelect) {
+        funcionarioSelect.addEventListener('change', function() {
+            var funcionarioId = this.value;
+            if (funcionarioId) {
+                fetch(`/rh/api/funcionario/${funcionarioId}/ferias/`)
+                    .then(response => response.json())
+                    .then(data => {
+                        document.getElementById('info_funcionario').style.display = 'block';
+                        document.getElementById('info_admissao').textContent = `Data de Admissão: ${data.data_admissao}`;
+                        document.getElementById('info_ferias_vencidas').textContent = `Férias Vencidas: ${data.ferias_vencidas ? 'Sim' : 'Não'}`;
+                        document.getElementById('info_ultima_ferias').textContent = `Última Férias: ${data.ultima_ferias || 'Nunca gozou férias'}`;
+
+                        // Preenche o período aquisitivo
+                        if (data.periodo_aquisitivo) {
+                            document.getElementById('id_periodo_aquisitivo_inicio').value = data.periodo_aquisitivo.inicio;
+                            document.getElementById('id_periodo_aquisitivo_fim').value = data.periodo_aquisitivo.fim;
+                        }
+                    });
+            } else {
+                document.getElementById('info_funcionario').style.display = 'none';
+            }
+        });
+    }
+
+    // Calcula data fim e dias
+    var dataInicioInput = document.getElementById('id_data_inicio');
+    var dataFimInput = document.getElementById('id_data_fim');
+    var diasInput = document.getElementById('id_dias');
+    var diasAbonoInput = document.getElementById('id_dias_abono');
+    var abonoPecuniarioCheck = document.getElementById('id_abono_pecuniario');
+
+    function calcularDias() {
+        if (dataInicioInput.value && dataFimInput.value) {
+            var inicio = new Date(dataInicioInput.value);
+            var fim = new Date(dataFimInput.value);
+            var diffTime = Math.abs(fim - inicio);
+            var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24)) + 1;
+            diasInput.value = diffDays;
+
+            // Atualiza dias de abono
+            if (abonoPecuniarioCheck.checked) {
+                diasAbonoInput.value = 10;
+            } else {
+                diasAbonoInput.value = 0;
+            }
+        }
+    }
+
+    if (dataInicioInput && dataFimInput) {
+        dataInicioInput.addEventListener('change', calcularDias);
+        dataFimInput.addEventListener('change', calcularDias);
+    }
+
+    if (abonoPecuniarioCheck) {
+        abonoPecuniarioCheck.addEventListener('change', function() {
+            if (this.checked) {
+                diasAbonoInput.value = 10;
+            } else {
+                diasAbonoInput.value = 0;
+            }
+        });
+    }
+
+    // Formatação de valores monetários
+    var moneyInputs = document.querySelectorAll('#id_valor_abono, #id_valor_adiantamento');
+    moneyInputs.forEach(function(input) {
+        input.addEventListener('input', function(e) {
+            var value = e.target.value.replace(/\D/g, '');
+            value = (value/100).toFixed(2) + '';
+            value = value.replace(".", ",");
+            value = value.replace(/(\d)(?=(\d{3})+(?!\d))/g, '$1.');
+            e.target.value = 'R$ ' + value;
+        });
+    });
+});
+</script>
+{% endblock %} 

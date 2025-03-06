@@ -1,0 +1,229 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Recibo de Pagamento - {{ folha.funcionario.nome }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <!-- Cabeçalho do Recibo -->
+    <div class="card mb-4">
+        <div class="card-header d-flex justify-content-between align-items-center">
+            <h4 class="mb-0">Recibo de Pagamento</h4>
+            <div>
+                <button type="button" class="btn btn-primary" onclick="window.print()">
+                    <i class="fas fa-print me-1"></i>Imprimir
+                </button>
+                <a href="{% url 'rh:folha_pagamento_pdf' folha.id %}" class="btn btn-info" target="_blank">
+                    <i class="fas fa-file-pdf me-1"></i>Gerar PDF
+                </a>
+            </div>
+        </div>
+        <div class="card-body">
+            <!-- Informações da Empresa -->
+            <div class="row mb-4">
+                <div class="col-12 text-center">
+                    <h5>{{ empresa.nome }}</h5>
+                    <p class="mb-0">CNPJ: {{ empresa.cnpj }}</p>
+                    <p class="mb-0">{{ empresa.endereco }}</p>
+                    <p>{{ empresa.cidade }} - {{ empresa.estado }} - CEP: {{ empresa.cep }}</p>
+                </div>
+            </div>
+
+            <!-- Informações do Funcionário -->
+            <div class="row mb-4">
+                <div class="col-md-6">
+                    <h6>Dados do Funcionário</h6>
+                    <p class="mb-1"><strong>Nome:</strong> {{ folha.funcionario.nome_completo }}</p>
+                    <p class="mb-1"><strong>Matrícula:</strong> {{ folha.funcionario.matricula }}</p>
+                    <p class="mb-1"><strong>Cargo:</strong> {{ folha.funcionario.cargo }}</p>
+                    <p class="mb-1"><strong>Departamento:</strong> {{ folha.funcionario.departamento }}</p>
+                </div>
+                <div class="col-md-6">
+                    <h6>Dados do Pagamento</h6>
+                    <p class="mb-1"><strong>Mês/Ano:</strong> {{ folha.mes_referencia }}/{{ folha.ano_referencia }}</p>
+                    <p class="mb-1"><strong>Data Pagamento:</strong> {{ folha.data_pagamento|date:"d/m/Y" }}</p>
+                    <p class="mb-1"><strong>Banco:</strong> {{ folha.funcionario.banco }}</p>
+                    <p class="mb-1"><strong>Agência/Conta:</strong> {{ folha.funcionario.agencia }} - {{ folha.funcionario.conta }}</p>
+                </div>
+            </div>
+
+            <!-- Rendimentos e Descontos -->
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0">Rendimentos</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th class="text-end">Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Salário Base</td>
+                                        <td class="text-end">R$ {{ folha.salario_base|floatformat:2 }}</td>
+                                    </tr>
+                                    {% if folha.horas_extras > 0 %}
+                                    <tr>
+                                        <td>Horas Extras</td>
+                                        <td class="text-end">R$ {{ folha.horas_extras|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if folha.adicional_noturno > 0 %}
+                                    <tr>
+                                        <td>Adicional Noturno</td>
+                                        <td class="text-end">R$ {{ folha.adicional_noturno|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if folha.gratificacoes > 0 %}
+                                    <tr>
+                                        <td>Gratificações</td>
+                                        <td class="text-end">R$ {{ folha.gratificacoes|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr class="table-success">
+                                        <th>Total Rendimentos</th>
+                                        <th class="text-end">R$ {{ folha.total_rendimentos|floatformat:2 }}</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="card mb-4">
+                        <div class="card-header bg-danger text-white">
+                            <h6 class="mb-0">Descontos</h6>
+                        </div>
+                        <div class="card-body">
+                            <table class="table table-sm">
+                                <thead>
+                                    <tr>
+                                        <th>Descrição</th>
+                                        <th class="text-end">Valor</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>INSS</td>
+                                        <td class="text-end">R$ {{ folha.inss|floatformat:2 }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td>IRRF</td>
+                                        <td class="text-end">R$ {{ folha.irrf|floatformat:2 }}</td>
+                                    </tr>
+                                    {% if folha.faltas > 0 %}
+                                    <tr>
+                                        <td>Faltas</td>
+                                        <td class="text-end">R$ {{ folha.faltas|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    {% if folha.atrasos > 0 %}
+                                    <tr>
+                                        <td>Atrasos</td>
+                                        <td class="text-end">R$ {{ folha.atrasos|floatformat:2 }}</td>
+                                    </tr>
+                                    {% endif %}
+                                    <tr class="table-danger">
+                                        <th>Total Descontos</th>
+                                        <th class="text-end">R$ {{ folha.total_descontos|floatformat:2 }}</th>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Valor Líquido -->
+            <div class="row">
+                <div class="col-12">
+                    <div class="card">
+                        <div class="card-body bg-light">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>Valor Líquido a Receber</h5>
+                                </div>
+                                <div class="col-md-4 text-end">
+                                    <h5 class="text-primary">R$ {{ folha.valor_liquido|floatformat:2 }}</h5>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Assinaturas -->
+            <div class="row mt-5">
+                <div class="col-md-6 text-center">
+                    <div class="border-top border-dark" style="width: 250px; margin: 0 auto;">
+                        <p class="mt-2">Assinatura do Funcionário</p>
+                    </div>
+                </div>
+                <div class="col-md-6 text-center">
+                    <div class="border-top border-dark" style="width: 250px; margin: 0 auto;">
+                        <p class="mt-2">Assinatura do Empregador</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+    .navbar, .sidebar, .breadcrumb, .btn, .no-print {
+        display: none !important;
+    }
+    
+    .card {
+        border: none !important;
+    }
+    
+    .card-header {
+        background-color: transparent !important;
+        border-bottom: 1px solid #000 !important;
+    }
+    
+    .bg-success {
+        background-color: transparent !important;
+        color: #000 !important;
+        border-bottom: 2px solid #28a745;
+    }
+    
+    .bg-danger {
+        background-color: transparent !important;
+        color: #000 !important;
+        border-bottom: 2px solid #dc3545;
+    }
+    
+    .table-success {
+        background-color: #e8f5e9 !important;
+    }
+    
+    .table-danger {
+        background-color: #ffebee !important;
+    }
+    
+    .container-fluid {
+        padding: 0 !important;
+    }
+    
+    @page {
+        size: A4;
+        margin: 1cm;
+    }
+    
+    body {
+        padding: 0 !important;
+        margin: 0 !important;
+    }
+}
+</style>
+{% endblock %} 

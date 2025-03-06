@@ -1,0 +1,316 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+
+{% block title %}Treinamento: {{ treinamento.nome }} - ERP Ninja{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">{{ treinamento.nome }}</h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:treinamentos_list' %}">Treinamentos</a></li>
+        <li class="breadcrumb-item active">{{ treinamento.nome }}</li>
+    </ol>
+
+    <!-- Ações -->
+    <div class="mb-4">
+        <a href="{% url 'rh:treinamento_update' treinamento.id %}" class="btn btn-warning">
+            <i class="fas fa-edit me-1"></i>Editar
+        </a>
+        {% if treinamento.status != 'concluido' and treinamento.status != 'cancelado' %}
+        <button type="button" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#concluirModal">
+            <i class="fas fa-check me-1"></i>Concluir
+        </button>
+        <button type="button" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#cancelarModal">
+            <i class="fas fa-times me-1"></i>Cancelar
+        </button>
+        {% endif %}
+        <div class="btn-group">
+            <button type="button" class="btn btn-secondary dropdown-toggle" data-bs-toggle="dropdown">
+                <i class="fas fa-file-alt me-1"></i>Documentos
+            </button>
+            <ul class="dropdown-menu">
+                <li><a class="dropdown-item" href="{% url 'rh:treinamento_lista_presenca' treinamento.id %}">
+                    <i class="fas fa-clipboard-list me-1"></i>Lista de Presença
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'rh:treinamento_certificados' treinamento.id %}">
+                    <i class="fas fa-certificate me-1"></i>Certificados
+                </a></li>
+                <li><a class="dropdown-item" href="{% url 'rh:treinamento_relatorio' treinamento.id %}">
+                    <i class="fas fa-file-pdf me-1"></i>Relatório
+                </a></li>
+            </ul>
+        </div>
+        <button type="button" class="btn btn-secondary" onclick="window.print()">
+            <i class="fas fa-print me-1"></i>Imprimir
+        </button>
+    </div>
+
+    <div class="row">
+        <!-- Informações Básicas -->
+        <div class="col-xl-4">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-info-circle me-1"></i>
+                    Informações Básicas
+                </div>
+                <div class="card-body">
+                    <dl class="row">
+                        <dt class="col-sm-4">Tipo:</dt>
+                        <dd class="col-sm-8">{{ treinamento.get_tipo_display }}</dd>
+
+                        <dt class="col-sm-4">Status:</dt>
+                        <dd class="col-sm-8">
+                            {% if treinamento.status == 'agendado' %}
+                            <span class="badge bg-primary">Agendado</span>
+                            {% elif treinamento.status == 'em_andamento' %}
+                            <span class="badge bg-warning">Em Andamento</span>
+                            {% elif treinamento.status == 'concluido' %}
+                            <span class="badge bg-success">Concluído</span>
+                            {% else %}
+                            <span class="badge bg-danger">Cancelado</span>
+                            {% endif %}
+                        </dd>
+
+                        <dt class="col-sm-4">Instrutor:</dt>
+                        <dd class="col-sm-8">{{ treinamento.instrutor }}</dd>
+
+                        <dt class="col-sm-4">Local:</dt>
+                        <dd class="col-sm-8">{{ treinamento.local }}</dd>
+
+                        <dt class="col-sm-4">Início:</dt>
+                        <dd class="col-sm-8">{{ treinamento.data_inicio|date:"d/m/Y" }}</dd>
+
+                        <dt class="col-sm-4">Fim:</dt>
+                        <dd class="col-sm-8">{{ treinamento.data_fim|date:"d/m/Y" }}</dd>
+
+                        <dt class="col-sm-4">Carga Horária:</dt>
+                        <dd class="col-sm-8">{{ treinamento.carga_horaria }} horas</dd>
+
+                        <dt class="col-sm-4">Vagas:</dt>
+                        <dd class="col-sm-8">{{ treinamento.participantes.count }}/{{ treinamento.vagas }}</dd>
+
+                        <dt class="col-sm-4">Custo:</dt>
+                        <dd class="col-sm-8">R$ {{ treinamento.custo|floatformat:2 }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+
+        <!-- Descrição e Material -->
+        <div class="col-xl-8">
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-file-alt me-1"></i>
+                    Descrição
+                </div>
+                <div class="card-body">
+                    {{ treinamento.descricao|linebreaks }}
+                </div>
+            </div>
+
+            {% if treinamento.material %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <i class="fas fa-book me-1"></i>
+                    Material de Apoio
+                </div>
+                <div class="card-body">
+                    <a href="{{ treinamento.material.url }}" class="btn btn-primary" target="_blank">
+                        <i class="fas fa-download me-1"></i>Download do Material
+                    </a>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <!-- Participantes -->
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-users me-1"></i>
+            Participantes
+        </div>
+        <div class="card-body">
+            <div class="table-responsive">
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Nome</th>
+                            <th>Cargo</th>
+                            <th>Departamento</th>
+                            <th>Presença</th>
+                            <th>Nota</th>
+                            <th>Status</th>
+                            <th>Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for participante in treinamento.participantes.all %}
+                        <tr>
+                            <td>{{ participante.nome }}</td>
+                            <td>{{ participante.cargo }}</td>
+                            <td>{{ participante.departamento }}</td>
+                            <td>{{ participante.treinamentos_participante.get.presenca|default:"0" }}%</td>
+                            <td>{{ participante.treinamentos_participante.get.nota|default:"-" }}</td>
+                            <td>
+                                {% with status=participante.treinamentos_participante.get.status %}
+                                {% if status == 'aprovado' %}
+                                <span class="badge bg-success">Aprovado</span>
+                                {% elif status == 'reprovado' %}
+                                <span class="badge bg-danger">Reprovado</span>
+                                {% else %}
+                                <span class="badge bg-secondary">Pendente</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+                            <td>
+                                <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#avaliarModal{{ participante.id }}">
+                                    <i class="fas fa-star"></i>
+                                </button>
+                                <a href="{% url 'rh:funcionario_detail' participante.id %}" class="btn btn-info btn-sm">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                            </td>
+                        </tr>
+
+                        <!-- Modal de Avaliação -->
+                        <div class="modal fade" id="avaliarModal{{ participante.id }}" tabindex="-1">
+                            <div class="modal-dialog">
+                                <div class="modal-content">
+                                    <div class="modal-header">
+                                        <h5 class="modal-title">Avaliar Participante</h5>
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                                    </div>
+                                    <form action="{% url 'rh:treinamento_avaliar_participante' treinamento.id participante.id %}" method="post">
+                                        {% csrf_token %}
+                                        <div class="modal-body">
+                                            <div class="mb-3">
+                                                <label for="presenca{{ participante.id }}" class="form-label">Presença (%)</label>
+                                                <input type="number" class="form-control" id="presenca{{ participante.id }}" name="presenca" min="0" max="100" value="{{ participante.treinamentos_participante.get.presenca|default:'0' }}" required>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="nota{{ participante.id }}" class="form-label">Nota</label>
+                                                <input type="number" class="form-control" id="nota{{ participante.id }}" name="nota" min="0" max="10" step="0.1" value="{{ participante.treinamentos_participante.get.nota|default:'' }}">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label for="observacoes{{ participante.id }}" class="form-label">Observações</label>
+                                                <textarea class="form-control" id="observacoes{{ participante.id }}" name="observacoes" rows="3">{{ participante.treinamentos_participante.get.observacoes|default:'' }}</textarea>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                            <button type="submit" class="btn btn-primary">Salvar Avaliação</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center">Nenhum participante inscrito</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Observações -->
+    {% if treinamento.observacoes %}
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-comment me-1"></i>
+            Observações
+        </div>
+        <div class="card-body">
+            {{ treinamento.observacoes|linebreaks }}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Modal de Conclusão -->
+    <div class="modal fade" id="concluirModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Conclusão</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'rh:treinamento_concluir' treinamento.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <p>Tem certeza que deseja concluir o treinamento {{ treinamento.nome }}?</p>
+                        <div class="mb-3">
+                            <label for="observacoes_conclusao" class="form-label">Observações</label>
+                            <textarea class="form-control" id="observacoes_conclusao" name="observacoes" rows="3"></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-success">Confirmar Conclusão</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal de Cancelamento -->
+    <div class="modal fade" id="cancelarModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirmar Cancelamento</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <form action="{% url 'rh:treinamento_cancelar' treinamento.id %}" method="post">
+                    {% csrf_token %}
+                    <div class="modal-body">
+                        <p>Tem certeza que deseja cancelar o treinamento {{ treinamento.nome }}?</p>
+                        <div class="mb-3">
+                            <label for="motivo_cancelamento" class="form-label">Motivo do Cancelamento</label>
+                            <textarea class="form-control" id="motivo_cancelamento" name="motivo" rows="3" required></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-danger">Confirmar Cancelamento</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+    @media print {
+        .breadcrumb,
+        .btn,
+        .modal,
+        .no-print {
+            display: none !important;
+        }
+        
+        .card {
+            border: none !important;
+        }
+        
+        .card-header {
+            background-color: transparent !important;
+            border-bottom: 1px solid #000 !important;
+        }
+        
+        .container-fluid {
+            padding: 0 !important;
+        }
+        
+        body {
+            padding: 0 !important;
+            margin: 0 !important;
+        }
+    }
+</style>
+{% endblock %} 

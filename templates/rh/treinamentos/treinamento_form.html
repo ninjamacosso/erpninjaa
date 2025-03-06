@@ -1,0 +1,223 @@
+{% extends 'dashboard/base_dashboard.html' %}
+{% load static %}
+{% load crispy_forms_tags %}
+
+{% block title %}
+{% if form.instance.pk %}
+Editar Treinamento - {{ form.instance.nome }}
+{% else %}
+Novo Treinamento
+{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid px-4">
+    <h1 class="mt-4">
+        {% if form.instance.pk %}
+        Editar Treinamento - {{ form.instance.nome }}
+        {% else %}
+        Novo Treinamento
+        {% endif %}
+    </h1>
+    <ol class="breadcrumb mb-4">
+        <li class="breadcrumb-item"><a href="{% url 'rh:rh_dashboard' %}">Dashboard RH</a></li>
+        <li class="breadcrumb-item"><a href="{% url 'rh:treinamentos_list' %}">Treinamentos</a></li>
+        <li class="breadcrumb-item active">
+            {% if form.instance.pk %}
+            Editar Treinamento
+            {% else %}
+            Novo Treinamento
+            {% endif %}
+        </li>
+    </ol>
+
+    <div class="card mb-4">
+        <div class="card-header">
+            <i class="fas fa-graduation-cap me-1"></i>
+            Dados do Treinamento
+        </div>
+        <div class="card-body">
+            <form method="post" enctype="multipart/form-data" class="needs-validation" novalidate>
+                {% csrf_token %}
+                
+                <div class="row mb-4">
+                    <div class="col-md-8">
+                        {{ form.nome|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.tipo|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.descricao|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-6">
+                        {{ form.instrutor|as_crispy_field }}
+                    </div>
+                    <div class="col-md-6">
+                        {{ form.local|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        {{ form.data_inicio|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.data_fim|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.carga_horaria|as_crispy_field }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ form.vagas|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-4">
+                        {{ form.status|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.custo|as_crispy_field }}
+                    </div>
+                    <div class="col-md-4">
+                        {{ form.material|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.participantes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="row mb-4">
+                    <div class="col-md-12">
+                        {{ form.observacoes|as_crispy_field }}
+                    </div>
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{% url 'rh:treinamentos_list' %}" class="btn btn-secondary me-2">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Salvar</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        // Formatação do campo de custo
+        const custoInput = document.getElementById('id_custo');
+        if (custoInput) {
+            custoInput.addEventListener('input', function(e) {
+                let value = e.target.value.replace(/\D/g, '');
+                value = (parseInt(value) / 100).toFixed(2);
+                e.target.value = value;
+            });
+        }
+
+        // Validação do formulário
+        const form = document.querySelector('.needs-validation');
+        form.addEventListener('submit', function(event) {
+            if (!form.checkValidity()) {
+                event.preventDefault();
+                event.stopPropagation();
+            }
+            form.classList.add('was-validated');
+        });
+
+        // Validação das datas
+        const dataInicioInput = document.getElementById('id_data_inicio');
+        const dataFimInput = document.getElementById('id_data_fim');
+        
+        if (dataInicioInput && dataFimInput) {
+            dataFimInput.addEventListener('change', function() {
+                if (dataInicioInput.value && this.value) {
+                    const inicio = new Date(dataInicioInput.value);
+                    const fim = new Date(this.value);
+                    
+                    if (fim < inicio) {
+                        this.setCustomValidity('A data de fim deve ser posterior à data de início');
+                    } else {
+                        this.setCustomValidity('');
+                    }
+                }
+            });
+            
+            dataInicioInput.addEventListener('change', function() {
+                if (dataFimInput.value && this.value) {
+                    const inicio = new Date(this.value);
+                    const fim = new Date(dataFimInput.value);
+                    
+                    if (fim < inicio) {
+                        dataFimInput.setCustomValidity('A data de fim deve ser posterior à data de início');
+                    } else {
+                        dataFimInput.setCustomValidity('');
+                    }
+                }
+            });
+        }
+
+        // Validação do número de participantes
+        const participantesSelect = document.getElementById('id_participantes');
+        const vagasInput = document.getElementById('id_vagas');
+        
+        if (participantesSelect && vagasInput) {
+            participantesSelect.addEventListener('change', function() {
+                const numParticipantes = this.selectedOptions.length;
+                const numVagas = parseInt(vagasInput.value) || 0;
+                
+                if (numParticipantes > numVagas) {
+                    this.setCustomValidity(`O número de participantes (${numParticipantes}) excede o número de vagas (${numVagas})`);
+                } else {
+                    this.setCustomValidity('');
+                }
+            });
+            
+            vagasInput.addEventListener('change', function() {
+                const numParticipantes = participantesSelect.selectedOptions.length;
+                const numVagas = parseInt(this.value) || 0;
+                
+                if (numParticipantes > numVagas) {
+                    participantesSelect.setCustomValidity(`O número de participantes (${numParticipantes}) excede o número de vagas (${numVagas})`);
+                } else {
+                    participantesSelect.setCustomValidity('');
+                }
+            });
+        }
+
+        // Atualização do status baseado nas datas
+        const statusSelect = document.getElementById('id_status');
+        if (statusSelect && dataInicioInput && dataFimInput) {
+            function atualizarStatus() {
+                if (dataInicioInput.value && dataFimInput.value) {
+                    const hoje = new Date();
+                    const inicio = new Date(dataInicioInput.value);
+                    const fim = new Date(dataFimInput.value);
+                    
+                    if (hoje < inicio) {
+                        statusSelect.value = 'agendado';
+                    } else if (hoje >= inicio && hoje <= fim) {
+                        statusSelect.value = 'em_andamento';
+                    } else if (hoje > fim) {
+                        statusSelect.value = 'concluido';
+                    }
+                }
+            }
+            
+            dataInicioInput.addEventListener('change', atualizarStatus);
+            dataFimInput.addEventListener('change', atualizarStatus);
+        }
+    });
+</script>
+{% endblock %} 

@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ title }} - ERP Ninja</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <a href="{{ url_for('main.index') }}" class="navbar-brand">
+                ERP Ninja
+            </a>
+            <ul class="navbar-nav">
+                {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('main.index') }}" class="nav-link">Início</a></li>
+                    <li><a href="{{ url_for('dashboard.index') }}" class="nav-link">Dashboard</a></li>
+                    <li><a href="{{ url_for('profile.view') }}" class="nav-link">Perfil</a></li>
+                    <li><a href="{{ url_for('auth.logout') }}" class="nav-link">Sair</a></li>
+                {% else %}
+                    <li><a href="{{ url_for('auth.login') }}" class="nav-link">Login</a></li>
+                    <li><a href="{{ url_for('auth.register') }}" class="nav-link">Registrar</a></li>
+                {% endif %}
+            </ul>
+        </div>
+    </nav>
+
+    <main class="main-content">
+        <div class="container">
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="alert alert-{{ category }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            {% block content %}{% endblock %}
+        </div>
+    </main>
+
+    <footer class="footer">
+        <div class="container">
+            <p>&copy; 2024 ERP Ninja. Todos os direitos reservados.</p>
+        </div>
+    </footer>
+</body>
+</html> 
